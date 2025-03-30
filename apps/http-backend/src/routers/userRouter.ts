@@ -19,14 +19,10 @@ userRouter.post("/signup", async (req:Request, res: Response) =>{
       }
     })
     
-    console.log("INSIDE CREATE USER ROUTE:", user);
-
     if(user != null){
       res.status(400).json({error:"User already exists"})
       return;
     }
-    
-    console.log("Code Executing after sending response") 
 
     const rounds = 10;
     const salt = await bcrypt.genSalt(rounds);
@@ -77,9 +73,8 @@ userRouter.post("/signin", async (req:Request, res:Response) => {
       return;
     }
 
-    console.log("JWT_SECRET: ",JWT_SECRET);
 
-    const token = jwt.sign(user.id, JWT_SECRET);
+    const token = jwt.sign({userId: user.id}, JWT_SECRET);
     res.status(200).json(token)
     return;
   } catch(err){
@@ -88,46 +83,5 @@ userRouter.post("/signin", async (req:Request, res:Response) => {
   }
 })
 
-userRouter.post("/room",gateRoom, async (req:Request, res: Response) => {
-  try{
-    const parsedRequest = createRoomSchema.safeParse(await req.body);
-    if(!parsedRequest.success){
-      res.json({
-        message: "incorrect input"
-      })
-      return;
-    }
-
-    const userId = req.userId;
-    const room = await prisma.room.create({
-      data:{
-        slug: parsedRequest.data!.name,
-        adminId: userId!
-      }
-
-    })
-  } catch(err){
-    console.log(err);
-  }
-})
-
-userRouter.get("/chats/:roomId", async (req: Request, res: Response) => {
-  try{
-    const roomId = Number(req.params.roomId);
-    const messages = await prisma.chat.findMany({
-      where:{
-        roomId
-      },
-      orderBy:{
-        id:"desc"
-      }, 
-      take:50
-    })
-    res.status(200).json(messages);
-  } catch (err){
-    console.log(err);
-  }
-
-})
 
 export default userRouter;

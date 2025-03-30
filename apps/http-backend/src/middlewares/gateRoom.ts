@@ -5,11 +5,11 @@ import { JWT_SECRET } from "@repo/backend-common/config";
 export const gateRoom = async (req:Request ,res:Response, next:NextFunction) => {
   try{
     const token = req.headers['authorization'];
+    console.log(token);
     if(!token)
       res.send("Missing token, authentication failed");
 
     const decoded = jwt.verify(token as string, JWT_SECRET);
-    console.log(decoded);
 
     if(decoded){
         req.userId = (decoded as JwtPayload).userId;

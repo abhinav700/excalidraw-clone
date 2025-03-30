@@ -1,6 +1,7 @@
 import {WebSocket, WebSocketServer} from 'ws';
 import jwt, { JwtPayload } from 'jsonwebtoken';
-import {prisma} from "@repo/db/client"
+import {prisma} from "@repo/db/client";
+import {JWT_SECRET} from "@repo/backend-common/config";
 const PORT = 8080;
 interface User {
   ws: WebSocket;
@@ -11,7 +12,6 @@ interface User {
 const users : User[] = [];
 
 const wss = new WebSocketServer({port: 8080});
-export const JWT_SECRET="l;jkssfasfd"
 
 const checkToken = (token: string ): string | null => {
   try{
@@ -19,7 +19,7 @@ const checkToken = (token: string ): string | null => {
    if(typeof decoded == 'string')
       return null;
 
-   if(!decoded || decoded.userId)
+   if(!decoded || !decoded.userId)
     return null; 
 
    const userId = decoded.userId; 
@@ -41,12 +41,16 @@ wss.on('connection', (ws, req) => {
     return;
   }
 
+  console.log("Connected to Websockte server at 8080")
+
   users.push({ws, rooms:[], userId});
 
   ws.on('message', async (data) => { 
-    ws.send('received data');
-    const parsedData = JSON.parse(data as unknown as string);
+    try{
 
+      ws.send('received data');
+      const parsedData = JSON.parse(data as unknown as string);
+      
     switch(parsedData.type){
       case "join-room":
         let user = users.find(x=> x.userId === userId)
@@ -62,17 +66,20 @@ wss.on('connection', (ws, req) => {
 
       case 'chat':
         const {message, roomId}= parsedData;
-        
-        await prisma.chat.create({
+         
+        const createdMessage = await prisma.chat.create({
           data:{
-            roomId,
+            roomId: Number(roomId),
             message,
             userId
           }
         })
-        
+        console.log("DEBUGGING CHAT ROUTE IN WS SERVER\n\n\n\n");
+        console.log("Created message: ", createdMessage);
         users.forEach(user => {
           if(user.rooms.includes(roomId)){
+            console.log("Entered the if condition")
+
             user.ws.send(JSON.stringify({
               type: "chat",
               message,
@@ -80,6 +87,9 @@ wss.on('connection', (ws, req) => {
             }))
           }
         })
+      }
+    }catch(err){
+      console.log(err);
     }
   })
 })
