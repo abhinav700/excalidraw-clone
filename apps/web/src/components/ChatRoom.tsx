@@ -1,5 +1,5 @@
 import axios from "axios";
-import { HTTP_BACKEND_URL } from "../../config";
+import { HTTP_BACKEND_URL } from "../config";
 import ChatRoomClient from "./ChatRoomClient";
 
 const getChats = async (roomId: string) => {

@@ -18,13 +18,14 @@ const ChatRoomClient = ({messages, id}: ChatRoomClientProps) => {
     
      if(socket && !loading){
        socket.send(JSON.stringify({
-          type: "join_room",
+          type: "join-room",
           roomId:id
       }))
       socket.onmessage = (event) => {
         const parsedData = JSON.parse(event.data)
         switch (parsedData.type) {
           case "chat":
+            alert(`Entered the chat event, ${parsedData}`);
             setChats(c => [...c, parsedData.message]);
             break;
           

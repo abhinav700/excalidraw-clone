@@ -1,7 +1,7 @@
 import axios from 'axios';
 import React from 'react'
-import { HTTP_BACKEND_URL } from '../../../config';
 import ChatRoom from '../../../components/ChatRoom';
+import { HTTP_BACKEND_URL } from '@/config';
 type ChatRoomProps = {
   params: {
     slug: string

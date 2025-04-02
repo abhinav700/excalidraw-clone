@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { WS_BACKEND_URL } from "../../config";
+import { WS_BACKEND_URL } from "../config";
 
 const useSocket = () => {
   const [loading, setLoading]= useState<boolean>(true);
