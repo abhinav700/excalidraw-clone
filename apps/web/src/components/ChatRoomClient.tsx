@@ -26,7 +26,7 @@ const ChatRoomClient = ({messages, id}: ChatRoomClientProps) => {
         switch (parsedData.type) {
           case "chat":
             alert(`Entered the chat event, ${parsedData}`);
-            setChats(c => [...c, parsedData.message]);
+            setChats(c => [...c,{message: parsedData.message}]);
             break;
           
           default:

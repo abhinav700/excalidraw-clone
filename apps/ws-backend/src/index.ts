@@ -47,15 +47,11 @@ wss.on('connection', (ws, req) => {
 
   ws.on('message', async (data) => { 
     try{
-
-      const parsedData = JSON.parse(data as unknown as string);
+    const parsedData = JSON.parse(data as unknown as string);
       
     switch(parsedData.type){
       case "join-room":
         let user = users.find(x=> x.userId === userId)
-        console.log('-------DEBUGING join-room inside ws--------\n\n\n\n')
-        console.log("parsed data: ", parsedData);
-        console.log('/n//n/n-------DEBUGING join-room inside ws--------\n\n\n\n')
         user?.rooms.push(parsedData.roomId);
         break;
   
@@ -63,14 +59,11 @@ wss.on('connection', (ws, req) => {
         user = users.find(x => x.userId === userId);
         if(!user)
           return;
-        user.rooms = user?.rooms.filter(x => x != parsedData.roomId)
+        user.rooms = user?.rooms.filter(x => x == parsedData.roomId)
         break;
 
       case 'chat':
         const {message, roomId}= parsedData;
-         console.log('-------DEBUGING chatinside ws--------\n\n\n\n')
-        console.log("parsed data: ", parsedData);
-        console.log('/n//n/n-------DEBUGING join-room inside ws--------\n\n\n\n')
         const createdMessage = await prisma.chat.create({
           data:{
             roomId: Number(roomId),
@@ -81,8 +74,6 @@ wss.on('connection', (ws, req) => {
         console.log(users);
         users.forEach(user => {
           if(user.rooms.includes(roomId)){
-            console.log("Entered the if condition")
-
             user.ws.send(JSON.stringify({
               type: "chat",
               message,
