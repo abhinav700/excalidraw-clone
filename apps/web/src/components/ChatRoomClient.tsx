@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react"
 import useSocket from "../hooks/useSocket"
+import DrawingCanvas from "./DrawingCanvas"
 
 type ChatRoomClientProps = {
   messages: {
@@ -25,7 +26,6 @@ const ChatRoomClient = ({messages, id}: ChatRoomClientProps) => {
         const parsedData = JSON.parse(event.data)
         switch (parsedData.type) {
           case "chat":
-            alert(`Entered the chat event, ${parsedData}`);
             setChats(c => [...c,{message: parsedData.message}]);
             break;
           
@@ -36,21 +36,7 @@ const ChatRoomClient = ({messages, id}: ChatRoomClientProps) => {
     }
   }, [loading, socket, id])
   return (
-    <>
-    { chats.map((m: {message:string}) => <div>{m.message}</div>)}
-    <input placeholder="Type the text" autoFocus type="text" value={currentMessage} onChange={(e)=> {setCurrentMessage(e.target.value)}}/>
-
-    <button onClick={() => {
-      socket?.send(JSON.stringify({
-        type: "chat",
-        roomId: id,
-        message: currentMessage
-      }));
-      setCurrentMessage('');
-    }}>
-      Send message
-    </button>
-    </>
+   <DrawingCanvas/>
   )
 }
 

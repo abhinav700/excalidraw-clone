@@ -24,7 +24,6 @@ const Home = () => {
         />
         <button
           onClick={(e) => {
-            alert(`on click executed ${slug}`);
             router.push(`/room/${slug}`);
           }}
           style={{padding:"5px 5px",margin:"10px 0px", width: "60%", backgroundColor:"white", color:"black"}}
