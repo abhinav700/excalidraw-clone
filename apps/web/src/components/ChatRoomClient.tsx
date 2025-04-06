@@ -5,25 +5,21 @@ import useSocket from "../hooks/useSocket"
 import DrawingCanvas from "./DrawingCanvas"
 
 type ChatRoomClientProps = {
-  messages: {
+  existingShapes: {
     message: string
   }[],
-  id: string
+  roomId: string
 }
 
-const ChatRoomClient = ({messages, id}: ChatRoomClientProps) => {
-  const {socket, loading} = useSocket();
-  const [chats,setChats] = useState(messages);
-  const [currentMessage, setCurrentMessage] = useState<string>('');
+const ChatRoomClient = ({existingShapes, roomId}: ChatRoomClientProps) => {
+  const {socket, loading} = useSocket({roomId});
+  const [chats,setChats] = useState(existingShapes);
   useEffect(() => {
-    
-     if(socket && !loading){
-       socket.send(JSON.stringify({
-          type: "join-room",
-          roomId:id
-      }))
-      socket.onmessage = (event) => {
-        const parsedData = JSON.parse(event.data)
+    if(socket && !loading){
+       console.log("INSIDE user effect: ", socket, loading); 
+      socket.onmessage = async (event) => {
+        const parsedData = await JSON.parse(event.data)
+        console.log("Reaching chat event insdie chat room client: ", parsedData);
         switch (parsedData.type) {
           case "chat":
             setChats(c => [...c,{message: parsedData.message}]);
@@ -34,9 +30,9 @@ const ChatRoomClient = ({messages, id}: ChatRoomClientProps) => {
         }
       }
     }
-  }, [loading, socket, id])
+  }, [loading, socket, roomId])
   return (
-   <DrawingCanvas/>
+   <DrawingCanvas existingShapes={chats} socket={socket!} roomId={roomId}/>
   )
 }
 

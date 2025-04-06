@@ -27,8 +27,11 @@ app.post("/room",gateRoom, async (req:Request, res: Response) => {
       }
 
     })
+    res.json(room);
   } catch(err){
     console.log(err);
+    res.status(500);
+    
   }
 })
 

@@ -44,15 +44,17 @@ wss.on('connection', (ws, req) => {
   console.log("Connected to Websockte server at 8080")
 
   users.push({ws, rooms:[], userId});
+  console.log("size of users array: ", users.length);
 
   ws.on('message', async (data) => { 
     try{
-    const parsedData = JSON.parse(data as unknown as string);
-      
+    const parsedData = await JSON.parse(data as unknown as string);
+    console.log("Data received when reahching ws: ", parsedData)
     switch(parsedData.type){
       case "join-room":
         let user = users.find(x=> x.userId === userId)
         user?.rooms.push(parsedData.roomId);
+        console.log("----JOIN ROOM INSIDE WEB SOCKET BACKEND---");
         break;
   
       case 'leave-room':
@@ -64,6 +66,8 @@ wss.on('connection', (ws, req) => {
 
       case 'chat':
         const {message, roomId}= parsedData;
+        console.log("INSIDE HTTP_BACKEND CHAT EVENT\n\n\n")
+        // console.log("message: ",message);
         const createdMessage = await prisma.chat.create({
           data:{
             roomId: Number(roomId),
@@ -71,9 +75,10 @@ wss.on('connection', (ws, req) => {
             userId
           }
         })
-        console.log(users);
         users.forEach(user => {
           if(user.rooms.includes(roomId)){
+            console.log(`Checking user ${user.userId} with rooms: ${JSON.stringify(user.rooms)} for roomId: ${roomId}`);
+
             user.ws.send(JSON.stringify({
               type: "chat",
               message,
@@ -81,6 +86,7 @@ wss.on('connection', (ws, req) => {
             }))
           }
         })
+        // console.log("\n\n\nEXITING HTTP_BACKEND CHAT EVENT\n")
       }
     }catch(err){
       console.log(err);
