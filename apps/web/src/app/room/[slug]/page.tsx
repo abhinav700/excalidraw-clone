@@ -20,6 +20,8 @@ const ChatRoom = async ({params}: ChatRoomProps) => {
   const slug: string = (await params).slug;
   const roomId = await getRoomId(slug);
   const messages = await getExistingShapes(roomId);
+
+  // console.log("data stored in existing shapes array: ", messages);
   return <>
     <ChatRoomClient roomId ={roomId} existingShapes={messages}/>
   </>

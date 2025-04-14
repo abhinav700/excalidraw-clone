@@ -9,7 +9,7 @@ interface User {
   userId: string;
 }
 
-const users : User[] = [];
+let users : User[] = [];
 
 const wss = new WebSocketServer({port: 8080});
 
@@ -31,6 +31,10 @@ const checkToken = (token: string ): string | null => {
 }
 wss.on('connection', (ws, req) => {
   const url: string | undefined = req.url!;
+  if(users.length == 0)
+      console.log("users is empty");
+  else
+    console.log("users is not empty")
    if(!url)
       return;
   const queryParams = new URLSearchParams(url.split('?')[1]);
@@ -40,25 +44,24 @@ wss.on('connection', (ws, req) => {
     ws.close();
     return;
   }
+  users.push({ws, rooms:[], userId});
 
   console.log("Connected to Websockte server at 8080")
 
-  users.push({ws, rooms:[], userId});
-  console.log("size of users array: ", users.length);
+  console.log("users length: ", users.length) 
 
-  ws.on('message', async (data) => { 
+  ws.on('message', async (data) => {
     try{
     const parsedData = await JSON.parse(data as unknown as string);
-    console.log("Data received when reahching ws: ", parsedData)
+    // console.log("Data received when reahching ws: ", parsedData)
     switch(parsedData.type){
       case "join-room":
-        let user = users.find(x=> x.userId === userId)
+        let user = users.find(x=> x.ws === ws)
         user?.rooms.push(parsedData.roomId);
-        console.log("----JOIN ROOM INSIDE WEB SOCKET BACKEND---");
         break;
   
       case 'leave-room':
-        user = users.find(x => x.userId === userId);
+        user = users.find(x => x.ws === ws);
         if(!user)
           return;
         user.rooms = user?.rooms.filter(x => x == parsedData.roomId)
@@ -67,7 +70,7 @@ wss.on('connection', (ws, req) => {
       case 'chat':
         const {message, roomId}= parsedData;
         console.log("INSIDE HTTP_BACKEND CHAT EVENT\n\n\n")
-        // console.log("message: ",message);
+        console.log("message: ",message);
         const createdMessage = await prisma.chat.create({
           data:{
             roomId: Number(roomId),
@@ -86,10 +89,15 @@ wss.on('connection', (ws, req) => {
             }))
           }
         })
-        // console.log("\n\n\nEXITING HTTP_BACKEND CHAT EVENT\n")
+        console.log("\n\n\nEXITING HTTP_BACKEND CHAT EVENT\n")
+        break;
       }
     }catch(err){
       console.log(err);
     }
+  })
+  ws.on('close',() =>{
+    users = users.filter(user => user.ws != ws);
+    console.log("inside close event.")
   })
 })

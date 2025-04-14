@@ -19,9 +19,9 @@ const useSocket = ({roomId} : {roomId: string}) => {
         ws.send(data);
       };
       
-      // return () => {
-      //   ws.close();
-      // }
+      return () => {
+        ws.close();
+      }
     } catch (err){
       console.log(err);
     }finally{
