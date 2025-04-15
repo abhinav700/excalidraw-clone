@@ -3,8 +3,22 @@ import { Shape, Line } from "@/common/types/types";
 const isPointInsideShape = (x: number, y: number, shape: Shape) => {
     switch(shape.type){
       case "rectangle":
-        const {startX, startY, height, width} = shape;
-        return x >= startX && x <= startX + width && y >= startY && y <= startY + height;
+        let {startX, startY, height, width} = shape;
+        let horizontallyInside: boolean = false , verticallyInside : boolean = false;
+        
+        if(height >= 0)
+          verticallyInside = y >= startY && y <= startY + height;
+        
+        else if(height <= 0)
+          verticallyInside = y <= startY && y >= startY + height;
+
+        if(width >= 0)
+          horizontallyInside = x >= startX && x <= startX + width;
+        
+        else if(width <= 0)
+          horizontallyInside = x <= startX && x >= startX + width;
+
+        return horizontallyInside && verticallyInside;
       
       case "circle":
         const {centerX, centerY, radius} = shape;
@@ -13,11 +27,12 @@ const isPointInsideShape = (x: number, y: number, shape: Shape) => {
         return distanceSquared <= radiusSquared;
 
       case "pencil":
-        shape.lines.map((line: Line) => {
-          if(isPointOnLineSegment(line.startX, line.startY, line.endX, line.endY, x, y))
+        for(let i = 0; i < shape.lines.length; i++){
+          const {startX, startY, endX, endY} = shape.lines[i];
+          if(isPointOnLineSegment(startX, startY, endX, endY, x, y)){
             return true;
-        })
-
+          }
+        }
         break;
 
       default:
@@ -30,8 +45,7 @@ function isPointOnLineSegment(
   x2: number, y2: number,
   x: number, y: number
 ): boolean {
-  const cross = (y - y1) * (x2 - x1) - (x - x1) * (y2 - y1);
-  if (Math.abs(cross) > 1e-10) {
+  if ((x2 - x1) * (y - y1) != (y2 - y1) * (x - x1)) {
     return false; // Not on the same line
   }
 

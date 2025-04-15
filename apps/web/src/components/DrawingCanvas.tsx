@@ -35,6 +35,10 @@ const DrawingCanvas = ({socket, existingShapes, roomId} : DrawingCanvasProps) =>
     
     // console.log("inside drawind canvas: ",socket)
     setCanvasManager(new DrawManager(canvasRef.current, socket, roomId, existingShapes));
+
+    return (() =>{
+      canvasManager?.destroy();
+    })
   }, [canvasRef.current, socket, roomId, existingShapes]);
 
 

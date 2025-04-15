@@ -1,5 +1,6 @@
 import { Tool, Line, Shape, ExistingShape } from "@/common/types/types";
 import findShapeContainingPoint from "@/lib/findShapeContainingPoint";
+import triggerEraseEvent from "@/lib/triggerEraseEvent";
 
 export class DrawManager{
   private canvas: HTMLCanvasElement;
@@ -50,22 +51,24 @@ export class DrawManager{
           const parsedData = await JSON.parse(event.data)
           console.log(parsedData);
           switch (parsedData.type) {
-            case "chat":
-              console.log(parsedData.message);
-              this.existingShapes.push({id: parsedData.id, message: parsedData.message});
-              this.drawExistingShapes()
-              break;
-            
-            default:
-              break;
-          }
+              case "chat":
+                // console.log(parsedData.message);
+                this.existingShapes.push({id: parsedData.id, message: parsedData.message});
+                this.drawExistingShapes()
+                break;
+              case "erase-shape":
+                this.existingShapes = this.existingShapes.filter(shape => shape.id != parsedData.id)
+                this.drawExistingShapes()
+              default:
+                  break;
+            }
         } catch(err){
           console.log(err);
         }
     }
   }
 
-  public  drawExistingShapes(){
+  public drawExistingShapes(){
     this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
     this.existingShapes.map(async (item: ExistingShape) => {
       this.ctx.strokeStyle="red";
@@ -100,28 +103,24 @@ export class DrawManager{
 
   // TODO: replace with React.MouseEvent<HtmlCanvasElement>
   public mouseDownHandler= (e: MouseEvent) => {
-   if(this.selectedTool == "selection")
-     return;
-    
+    // console.log("inside mouseDown event");
     this.isDrawing = true;
     this.startX = e.clientX;
     this.startY = e.clientY;
+    // console.log(e.clientX, e.clientY);
+   if(this.selectedTool == "selection")
+     return;
 
+    
     if(this.selectedTool == "pencil"){
 
-      console.log("inside pencil condition for mouseDown handler");
+      // console.log("inside pencil condition for mouseDown handler");
       this.lines = [];
     }
 
     else if(this.selectedTool == 'eraser'){
-      const targetShapeIndex = findShapeContainingPoint(e.clientX, e.clientY, this.existingShapes);
-      if(targetShapeIndex == -1)
-        return;
-      
-     this.socket.send(JSON.stringify({
-        type: "erase",
-        targetShapeIndex
-      }))
+      // console.log("inside mousedown eraser condition");
+      triggerEraseEvent(this.startX, this.startY, this.existingShapes, this.socket, this.roomId!);
     }
    }
    
@@ -154,7 +153,7 @@ export class DrawManager{
           break;
         
         case "pencil":
-          console.log("inside pencil case mouseMove")
+          // console.log("inside pencil case mouseMove")
            this.lines!.map((line: Line) => {
               this.ctx.beginPath();
               this.ctx.moveTo(line.startX, line.startY);
@@ -162,15 +161,19 @@ export class DrawManager{
               this.ctx.stroke();
             })
             this.ctx.beginPath();
-          this.ctx.moveTo(this.startX, this.startY);
-          this.ctx.lineTo(endX, endY);
-          this.ctx.stroke();
+            this.ctx.moveTo(this.startX, this.startY);
+            this.ctx.lineTo(endX, endY);
+            this.ctx.stroke();
+            
+            this.lines?.push({startX:this.startX, startY: this.startY, endX, endY});
+            this.startX = endX;
+            this.startY = endY;
+            break;
           
-          this.lines?.push({startX:this.startX, startY: this.startY, endX, endY});
-          this.startX = endX;
-          this.startY = endY;
-          break;
-          
+          case "eraser":
+            triggerEraseEvent(e.clientX, e.clientY, this.existingShapes, this.socket, this.roomId);
+            break;
+
           default:
             break;
           }
@@ -216,7 +219,7 @@ export class DrawManager{
             break;
 
           case "pencil":
-            console.log("mouse up inside pencil case")
+            // console.log("mouse up inside pencil case")
             shape = {
               type: "pencil",
               lines: this.lines!
@@ -224,8 +227,7 @@ export class DrawManager{
             break;
             
           default:
-            shape= null;
-            break;
+           return; 
         }
         
         

@@ -11,7 +11,7 @@ type ChatRoomClientProps = {
 
 const ChatRoomClient = ({existingShapes, roomId}: ChatRoomClientProps) => {
   const {socket, loading} = useSocket({roomId});
-  console.log(existingShapes)
+  // console.log(existingShapes)
   return (
    <DrawingCanvas existingShapes={existingShapes} socket={socket!} roomId={roomId}/>
   )

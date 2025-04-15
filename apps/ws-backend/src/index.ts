@@ -66,11 +66,30 @@ wss.on('connection', (ws, req) => {
           return;
         user.rooms = user?.rooms.filter(x => x == parsedData.roomId)
         break;
+      case "erase-shape":
+        const {id} = parsedData;
+        console.log(`reached websocket. erase-shape function: ${parsedData}`);
+        
+        await prisma.chat.delete({
+          where:{
+            id
+          }
+        }) 
+       
+        users.forEach(user => {
+          if(user.rooms.includes(parsedData.roomId)){
+            user.ws.send(JSON.stringify({
+              type: "erase-shape",
+              id
+            }))
+          }
 
+        }) 
+        break;
       case 'chat':
         const {message, roomId}= parsedData;
-        console.log("INSIDE HTTP_BACKEND CHAT EVENT\n\n\n")
-        console.log("message: ",message);
+        // console.log("INSIDE HTTP_BACKEND CHAT EVENT\n\n\n")
+        // console.log("message: ",message);
         const createdMessage = await prisma.chat.create({
           data:{
             roomId: Number(roomId),
@@ -80,16 +99,17 @@ wss.on('connection', (ws, req) => {
         })
         users.forEach(user => {
           if(user.rooms.includes(roomId)){
-            console.log(`Checking user ${user.userId} with rooms: ${JSON.stringify(user.rooms)} for roomId: ${roomId}`);
+            // console.log(`Checking user ${user.userId} with rooms: ${JSON.stringify(user.rooms)} for roomId: ${roomId}`);
 
             user.ws.send(JSON.stringify({
               type: "chat",
               message,
-              roomId
+              roomId,
+              id: createdMessage.id
             }))
           }
         })
-        console.log("\n\n\nEXITING HTTP_BACKEND CHAT EVENT\n")
+        // console.log("\n\n\nEXITING HTTP_BACKEND CHAT EVENT\n")
         break;
       }
     }catch(err){

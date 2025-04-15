@@ -1,6 +1,6 @@
 import { Tool } from "@/common/types/types";
 import { DrawManager } from "@/engine/DrawManager";
-import { Circle, MousePointer, Pencil, RectangleHorizontal } from "lucide-react";
+import { Circle, Eraser, MousePointer, Pencil, RectangleHorizontal } from "lucide-react";
 import { SetStateAction, useEffect, useState } from "react";
 
 type DrawingToolbarProps = {
@@ -27,6 +27,9 @@ const DrawingToolbar = ({canvasManager}: DrawingToolbarProps) => {
     </ToolButton>
     <ToolButton toolName="pencil" setTool={setTool} tool={tool}>
       <Pencil/>
+    </ToolButton>
+    <ToolButton toolName="eraser" setTool={setTool} tool={tool}>
+      <Eraser/>
     </ToolButton>
   </div>
 }
