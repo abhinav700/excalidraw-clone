@@ -1,7 +1,6 @@
 import { Tool, Line, Shape, ExistingShape } from "@/common/types/types";
-import findShapeContainingPoint from "@/lib/findShapeContainingPoint";
 import triggerEraseEvent from "@/lib/triggerEraseEvent";
-
+import {CHAT, ERASE_SHAPE} from "@repo/common/constants"
 export class DrawManager{
   private canvas: HTMLCanvasElement;
   private ctx: CanvasRenderingContext2D;
@@ -51,12 +50,12 @@ export class DrawManager{
           const parsedData = await JSON.parse(event.data)
           console.log(parsedData);
           switch (parsedData.type) {
-              case "chat":
+              case CHAT:
                 // console.log(parsedData.message);
                 this.existingShapes.push({id: parsedData.id, message: parsedData.message});
                 this.drawExistingShapes()
                 break;
-              case "erase-shape":
+              case ERASE_SHAPE:
                 this.existingShapes = this.existingShapes.filter(shape => shape.id != parsedData.id)
                 this.drawExistingShapes()
               default:
@@ -135,7 +134,6 @@ export class DrawManager{
       
       this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
       
-      this.drawExistingShapes();
       
       switch (this.selectedTool) {
         case "rectangle":
@@ -154,30 +152,31 @@ export class DrawManager{
         
         case "pencil":
           // console.log("inside pencil case mouseMove")
-           this.lines!.map((line: Line) => {
-              this.ctx.beginPath();
-              this.ctx.moveTo(line.startX, line.startY);
-              this.ctx.lineTo(line.endX, line.endY);
-              this.ctx.stroke();
-            })
+          this.lines!.map((line: Line) => {
             this.ctx.beginPath();
-            this.ctx.moveTo(this.startX, this.startY);
-            this.ctx.lineTo(endX, endY);
+            this.ctx.moveTo(line.startX, line.startY);
+            this.ctx.lineTo(line.endX, line.endY);
             this.ctx.stroke();
-            
-            this.lines?.push({startX:this.startX, startY: this.startY, endX, endY});
-            this.startX = endX;
-            this.startY = endY;
-            break;
+          })
+          this.ctx.beginPath();
+          this.ctx.moveTo(this.startX, this.startY);
+          this.ctx.lineTo(endX, endY);
+          this.ctx.stroke();
+          
+          this.lines?.push({startX:this.startX, startY: this.startY, endX, endY});
+          this.startX = endX;
+          this.startY = endY;
+          break;
           
           case "eraser":
             triggerEraseEvent(e.clientX, e.clientY, this.existingShapes, this.socket, this.roomId);
             break;
-
-          default:
-            break;
-          }
-        } catch (err){
+            
+            default:
+              break;
+            }
+            this.drawExistingShapes();
+          } catch (err){
           console.log(err);
         }
       }
@@ -232,7 +231,7 @@ export class DrawManager{
         
         
         this.socket.send(JSON.stringify({
-          type:"chat",
+          type: CHAT,
           message: JSON.stringify({
             shape
           }),

@@ -2,6 +2,7 @@ import {WebSocket, WebSocketServer} from 'ws';
 import jwt, { JwtPayload } from 'jsonwebtoken';
 import {prisma} from "@repo/db/client";
 import {JWT_SECRET} from "@repo/backend-common/config";
+import {CHAT, CLOSE, ERASE_SHAPE, JOIN_ROOM, LEAVE_ROOM} from "@repo/common/constants"
 const PORT = 8080;
 interface User {
   ws: WebSocket;
@@ -55,18 +56,18 @@ wss.on('connection', (ws, req) => {
     const parsedData = await JSON.parse(data as unknown as string);
     // console.log("Data received when reahching ws: ", parsedData)
     switch(parsedData.type){
-      case "join-room":
+      case JOIN_ROOM:
         let user = users.find(x=> x.ws === ws)
         user?.rooms.push(parsedData.roomId);
         break;
   
-      case 'leave-room':
+      case LEAVE_ROOM:
         user = users.find(x => x.ws === ws);
         if(!user)
           return;
         user.rooms = user?.rooms.filter(x => x == parsedData.roomId)
         break;
-      case "erase-shape":
+      case ERASE_SHAPE:
         const {id} = parsedData;
         console.log(`reached websocket. erase-shape function: ${parsedData}`);
         
@@ -79,14 +80,14 @@ wss.on('connection', (ws, req) => {
         users.forEach(user => {
           if(user.rooms.includes(parsedData.roomId)){
             user.ws.send(JSON.stringify({
-              type: "erase-shape",
+              type: ERASE_SHAPE,
               id
             }))
           }
 
         }) 
         break;
-      case 'chat':
+      case CHAT:
         const {message, roomId}= parsedData;
         // console.log("INSIDE HTTP_BACKEND CHAT EVENT\n\n\n")
         // console.log("message: ",message);
@@ -102,7 +103,7 @@ wss.on('connection', (ws, req) => {
             // console.log(`Checking user ${user.userId} with rooms: ${JSON.stringify(user.rooms)} for roomId: ${roomId}`);
 
             user.ws.send(JSON.stringify({
-              type: "chat",
+              type: CHAT,
               message,
               roomId,
               id: createdMessage.id
@@ -116,7 +117,7 @@ wss.on('connection', (ws, req) => {
       console.log(err);
     }
   })
-  ws.on('close',() =>{
+  ws.on(CLOSE ,() =>{
     users = users.filter(user => user.ws != ws);
     console.log("inside close event.")
   })

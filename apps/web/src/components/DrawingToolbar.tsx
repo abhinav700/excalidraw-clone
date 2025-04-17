@@ -15,7 +15,7 @@ const DrawingToolbar = ({canvasManager}: DrawingToolbarProps) => {
     }, [tool])
  
   
-    return <div className="flex w-[50px] absolute top-[50%] rounded-lg left-[5%] flex-col bg-[#282928] items-center justify-center">
+    return <div className="flex w-[50px] absolute top-[30%] rounded-lg left-[5%] flex-col bg-[#282928] items-center justify-center">
     <ToolButton toolName="selection" setTool={setTool} tool={tool}>
       <MousePointer/>
     </ToolButton>

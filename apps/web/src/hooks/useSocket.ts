@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-
+import {JOIN_ROOM} from "@repo/common/constants"
 const useSocket = ({roomId} : {roomId: string}) => {
   const [loading, setLoading]= useState<boolean>(true);
   const [socket, setSocket] = useState<WebSocket | null>();
@@ -12,7 +12,7 @@ const useSocket = ({roomId} : {roomId: string}) => {
         setSocket(ws);
 
         const data = JSON.stringify({
-          type: "join-room",
+          type: JOIN_ROOM,
           roomId
         });
 
@@ -26,7 +26,6 @@ const useSocket = ({roomId} : {roomId: string}) => {
       console.log(err);
     }finally{
       setLoading((loading :boolean) => false);
-
     }
   }, [])
 
