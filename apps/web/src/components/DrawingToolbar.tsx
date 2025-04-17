@@ -1,6 +1,6 @@
 import { Tool } from "@/common/types/types";
-import { DrawManager } from "@/engine/DrawManager";
-import { Circle, Eraser, MousePointer, Pencil, RectangleHorizontal } from "lucide-react";
+import { DrawManager } from "@/lib/engine/DrawManager";
+import { ArrowUpRight, Circle, Eraser, Minus, MousePointer, Pencil, RectangleHorizontal } from "lucide-react";
 import { SetStateAction, useEffect, useState } from "react";
 
 type DrawingToolbarProps = {
@@ -8,14 +8,14 @@ type DrawingToolbarProps = {
 }
 
 const DrawingToolbar = ({canvasManager}: DrawingToolbarProps) => {
-  const [tool, setTool]= useState<Tool>("rectangle");
+  const [tool, setTool]= useState<Tool>(canvasManager.selectedTool);
   
     useEffect(() => {
       canvasManager.selectedTool = tool;
     }, [tool])
  
   
-    return <div className="flex w-[50px] absolute top-[30%] rounded-lg left-[5%] flex-col bg-[#282928] items-center justify-center">
+    return <div className="flex w-[50px] absolute top-[20%] rounded-lg left-[5%] flex-col bg-[#282928] items-center justify-center">
     <ToolButton toolName="selection" setTool={setTool} tool={tool}>
       <MousePointer/>
     </ToolButton>
@@ -31,6 +31,13 @@ const DrawingToolbar = ({canvasManager}: DrawingToolbarProps) => {
     <ToolButton toolName="eraser" setTool={setTool} tool={tool}>
       <Eraser/>
     </ToolButton>
+    <ToolButton toolName="line" setTool={setTool} tool={tool}>
+      < Minus/>
+    </ToolButton>
+    <ToolButton toolName="arrow" setTool={setTool} tool={tool}>
+      <ArrowUpRight/>
+    </ToolButton>
+
   </div>
 }
 

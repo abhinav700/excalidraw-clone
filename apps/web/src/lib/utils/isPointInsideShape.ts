@@ -1,4 +1,5 @@
-import { Shape, Line } from "@/common/types/types";
+import { Shape, LineSegment } from "@/common/types/types";
+import { ERASER_OFFSET } from "../constants";
 
 const isPointInsideShape = (x: number, y: number, shape: Shape) => {
     switch(shape.type){
@@ -49,8 +50,8 @@ function isPointOnLineSegment(
     return false; // Not on the same line
   }
 
-  const withinX = x >= Math.min(x1, x2) && x <= Math.max(x1, x2);
-  const withinY = y >= Math.min(y1, y2) && y <= Math.max(y1, y2);
+  const withinX = x >= Math.min(x1, x2) - ERASER_OFFSET && x <= Math.max(x1, x2) + ERASER_OFFSET;
+  const withinY = y >= Math.min(y1, y2) - ERASER_OFFSET && y <= Math.max(y1, y2) + ERASER_OFFSET;
 
   return withinX && withinY;
 }

@@ -2,7 +2,7 @@
 import React,
  { useEffect, useRef, useState } from "react";
 import DrawingToolbar from "./DrawingToolbar";
-import { DrawManager } from "@/engine/DrawManager";
+import { DrawManager } from "@/lib/engine/DrawManager";
 import { ExistingShape } from "@/common/types/types";
 
 export type StartCoordinates = {
@@ -34,10 +34,11 @@ const DrawingCanvas = ({socket, existingShapes, roomId} : DrawingCanvasProps) =>
     if (!canvasRef.current || !socket) return;
     
     // console.log("inside drawind canvas: ",socket)
-    setCanvasManager(new DrawManager(canvasRef.current, socket, roomId, existingShapes));
+    const canvasManagerObj = new DrawManager(canvasRef.current, socket, roomId, existingShapes);
+    setCanvasManager(canvasManagerObj);
 
     return (() =>{
-      canvasManager?.destroy();
+      canvasManagerObj.destroy();
     })
   }, [canvasRef.current, socket, roomId, existingShapes]);
 
