@@ -2,24 +2,23 @@ import constructLine from "./constructLine";
 
 const constructArrow = (startX : number, startY : number, endX: number, endY: number, ctx: CanvasRenderingContext2D) => {
   try {
-    const angleOfLineSegmentRadians = Math.atan((endY - startY)/(startY - startX));
+    const angleOfLineSegmentRadians = Math.atan2(endY - startY, endX - startX);
 
-    const angleOfLineSegmentDegrees = angleOfLineSegmentRadians * (180 / Math.PI);
+    const desiredAngleOfArrowWithLineRadians = Math.PI / 6; // 60 degrees in radians
 
-    const desiredAngleOfArrowWithLineDegrees =  30;
+    const angleOfFirstLineOfArrow = angleOfLineSegmentRadians + desiredAngleOfArrowWithLineRadians;
 
-    const angleOfFirstLineOfArrow = angleOfLineSegmentDegrees + desiredAngleOfArrowWithLineDegrees;
+    const angleOfSecondLineOfArrow  = angleOfLineSegmentRadians - desiredAngleOfArrowWithLineRadians;
 
-    const angleOfSecondLineOfArrow  = angleOfLineSegmentDegrees - desiredAngleOfArrowWithLineDegrees;
-    
-    const lenghtOfArrowLine = 5;
+    const lenghtOfArrowLine = 25;
 
-    const x1 = endX + lenghtOfArrowLine * Math.cos(angleOfFirstLineOfArrow);
-    const y1 = endY + lenghtOfArrowLine * Math.cos(angleOfFirstLineOfArrow);
+    const x1 = endX - lenghtOfArrowLine * Math.cos(angleOfFirstLineOfArrow);
+    const y1 = endY - lenghtOfArrowLine * Math.sin(angleOfFirstLineOfArrow);
 
-    const x2 = endX + lenghtOfArrowLine * Math.cos(angleOfSecondLineOfArrow);
-    const y2 = endY + lenghtOfArrowLine * Math.cos(angleOfSecondLineOfArrow);
+    const x2 = endX - lenghtOfArrowLine * Math.cos(angleOfSecondLineOfArrow);
+    const y2 = endY - lenghtOfArrowLine * Math.sin(angleOfSecondLineOfArrow);
 
+    constructLine(startX, startY, endX, endY, ctx);
     constructLine(endX, endY, x1, y1, ctx);
     constructLine(endX, endY, x2, y2, ctx);
 

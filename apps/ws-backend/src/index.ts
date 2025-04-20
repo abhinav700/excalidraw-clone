@@ -91,6 +91,7 @@ wss.on('connection', (ws, req) => {
         const {message, roomId}= parsedData;
         // console.log("INSIDE HTTP_BACKEND CHAT EVENT\n\n\n")
         // console.log("message: ",message);
+        console.log("parsed data inside chat event on backend ", parsedData)
         const createdMessage = await prisma.chat.create({
           data:{
             roomId: Number(roomId),

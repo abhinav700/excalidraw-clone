@@ -46,14 +46,29 @@ function isPointOnLineSegment(
   x2: number, y2: number,
   x: number, y: number
 ): boolean {
-  if ((x2 - x1) * (y - y1) != (y2 - y1) * (x - x1)) {
-    return false; // Not on the same line
-  }
-
-  const withinX = x >= Math.min(x1, x2) - ERASER_OFFSET && x <= Math.max(x1, x2) + ERASER_OFFSET;
-  const withinY = y >= Math.min(y1, y2) - ERASER_OFFSET && y <= Math.max(y1, y2) + ERASER_OFFSET;
-
-  return withinX && withinY;
+    if(!arePointsCollinearSlopeDirect(x1,y1, x2, y2, x, y))
+      return false;
+        
+    return Math.min(x1, x2) <= x && x <= Math.max(x1, x2) &&
+           Math.min(y1, y2) <= y && y <= Math.max(y1, y2)
 }
 
+function arePointsCollinearSlopeDirect(x1: number, y1: number, x2: number, y2: number, x3: number, y3: number): boolean {
+  // Handle coincident points
+  if ((x1 === x2 && y1 === y2) || (x1 === x3 && y1 === y3) || (x2 === x3 && y2 === y3)) {
+    return true;
+  }
+
+  // Handle vertical lines
+  if (x1 === x2) {
+    return x1 === x3;
+  }
+
+  const slope12 = (y2 - y1) / (x2 - x1);
+  const slope23 = (y3 - y2) / (x3 - x2);
+
+  // Use a small tolerance for floating-point comparisons
+  const tolerance = 1e-6;
+  return Math.abs(slope12 - slope23) < tolerance;
+}
 export default isPointInsideShape;

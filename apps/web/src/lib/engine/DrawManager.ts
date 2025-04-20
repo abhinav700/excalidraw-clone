@@ -174,7 +174,10 @@ export class DrawManager{
             
             case "line":
               constructLine(this.startX, this.startY, endX, endY, this.ctx);
-
+              break;
+            case "arrow":
+              constructArrow(this.startX, this.startY, endX, endY, this.ctx);
+              break;
             default:
               break;
           }
@@ -235,6 +238,16 @@ export class DrawManager{
               startY: this.startY,
               endX,
               endY
+            }
+            break;
+            
+          case "arrow":
+            shape = {
+              type: "arrow",
+              startX: this.startX,
+              startY:this.startY,
+              endX,
+              endY 
             }
             break;
           default:
