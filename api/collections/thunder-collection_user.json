@@ -1,0 +1,45 @@
+{
+    "clientName": "Thunder Client",
+    "collectionName": "user",
+    "collectionId": "61a29848-27ba-4ae0-aab0-f9d376d92374",
+    "dateExported": "2025-05-05T17:17:35.836Z",
+    "version": "1.2",
+    "folders": [],
+    "requests": [
+        {
+            "_id": "13b52c4a-8686-4aae-b859-4f058c08750b",
+            "colId": "61a29848-27ba-4ae0-aab0-f9d376d92374",
+            "containerId": "",
+            "name": "signup",
+            "url": "http://localhost:3001/user/signup",
+            "method": "POST",
+            "sortNum": 10000,
+            "created": "2025-05-05T17:11:50.188Z",
+            "modified": "2025-05-05T17:12:07.149Z",
+            "headers": [],
+            "body": {
+                "type": "json",
+                "raw": "{\n  \"email\":\"abhinavagrawal110@gmail.com\",\n  \"name\":\"Abhinav Agarwal\",\n  \"password\": \"saldkjffsdaf\"\n}",
+                "form": []
+            }
+        },
+        {
+            "_id": "62f8ea68-5f0d-453c-8d1f-3907cc0a892b",
+            "colId": "61a29848-27ba-4ae0-aab0-f9d376d92374",
+            "containerId": "",
+            "name": "signin",
+            "url": "http://localhost:3001/user/signin",
+            "method": "POST",
+            "sortNum": 20000,
+            "created": "2025-05-05T17:12:29.837Z",
+            "modified": "2025-05-05T17:13:11.642Z",
+            "headers": [],
+            "body": {
+                "type": "json",
+                "raw": "{\n  \"email\":\"abhinavagrawal110@gmail.com\",\n  \"password\": \"saldkjffsdaf\"\n}",
+                "form": []
+            }
+        }
+    ],
+    "ref": "vmchnTevJV8l1fSFWZDxuDQPO-idshSxT0wb4Ra3v0KdXDAHRNXTsqeABMeS0_1PUNK_lfuVhJm4XCj9dml3PA"
+}

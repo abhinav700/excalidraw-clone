@@ -7,9 +7,9 @@ services:
     ports:
       - "5432:5432" # Expose port 5432 on the host to the container's port 5432
     environment:
-      POSTGRES_USER: ${POSTGRES_USER:-myuser}
-      POSTGRES_DB: ${POSTGRES_DB:-mydatabase}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-mypassword}
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_DB: ${POSTGRES_DB:-excalidraw_clone}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
     volumes:
       - postgres_data:/var/lib/postgresql/data
 

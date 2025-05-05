@@ -1,0 +1,43 @@
+{
+    "clientName": "Thunder Client",
+    "collectionName": "room",
+    "collectionId": "ea539910-74ef-4661-a32d-4ee755eaf546",
+    "dateExported": "2025-05-05T17:18:17.247Z",
+    "version": "1.2",
+    "folders": [],
+    "requests": [
+        {
+            "_id": "e2438052-5129-435b-aa95-89408adb425a",
+            "colId": "ea539910-74ef-4661-a32d-4ee755eaf546",
+            "containerId": "",
+            "name": "create room",
+            "url": "http://localhost:3001/room",
+            "method": "POST",
+            "sortNum": 10000,
+            "created": "2025-05-05T17:15:18.866Z",
+            "modified": "2025-05-05T17:16:42.361Z",
+            "headers": [
+                {
+                    "name": "Accept",
+                    "value": "*/*",
+                    "isDisabled": true
+                },
+                {
+                    "name": "User-Agent",
+                    "value": "Thunder Client (https://www.thunderclient.com)",
+                    "isDisabled": true
+                },
+                {
+                    "name": "authorization",
+                    "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI4MDk3Y2VhYi01Yjk1LTRjYTItOGQxZS00ODhhZDJhZTVlMTgiLCJpYXQiOjE3NDY0NjUxOTN9.NV55ZhfalhyssFFIBUt6nmuj3b7xGJp15oMnpTBlVFI"
+                }
+            ],
+            "body": {
+                "type": "json",
+                "raw": "{\n  \"name\":\"cohort-3-chat\"\n}",
+                "form": []
+            }
+        }
+    ],
+    "ref": "ZL55VBNaOWXOAEs2E-eM40Vb1d52kragnnvvJ2TN9Jv0W6LLs8yRJNWPxlHZuyTmu1ppbcVqw2eACRL6yB6Pvw"
+}
