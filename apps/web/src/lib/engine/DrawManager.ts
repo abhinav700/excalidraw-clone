@@ -3,8 +3,8 @@ import triggerEraseEvent from "@/lib/utils/triggerEraseEvent";
 import { CHAT, ERASE_SHAPE } from "@repo/common/constants";
 import constructLine from "../utils/constructLine";
 import constructArrow from "../utils/constructArrow";
-import initTextArea from "../utils/textareaUtils/initTextArea";
 import sendTextToBackend from "../utils/textareaUtils/sendTextToBackend";
+
 export class DrawManager {
   private canvas: HTMLCanvasElement;
   private ctx: CanvasRenderingContext2D;
@@ -18,6 +18,7 @@ export class DrawManager {
   private lines: LineSegment[];
   private activeTextArea: HTMLTextAreaElement | null;
   private activeTextAreaPosition: { x: number; y: number } | null;
+  private fontSize: number;
   constructor(
     canvas: HTMLCanvasElement,
     socket: WebSocket,
@@ -35,6 +36,8 @@ export class DrawManager {
     this.existingShapes = existingShapes;
     this.ctx.strokeStyle = "red";
     this.ctx.fillStyle="white";
+    this.fontSize = 24;
+    this.ctx.font = `${this.fontSize}px Aerial`;
     this.ctx.lineWidth = 2;
     this.lines = [];
     this.activeTextArea = null;
@@ -83,11 +86,11 @@ export class DrawManager {
 
   public drawExistingShapes() {
     this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
-    console.log(this.existingShapes);
+    // console.log(this.existingShapes);
 
     this.existingShapes.map(async (item: ExistingShape) => {
-      this.ctx.strokeStyle = "red";
-      this.ctx.fillStyle = 'white';
+      // this.ctx.strokeStyle = "red";
+      // this.ctx.fillStyle = 'white';
       const message = await JSON.parse(item.message);
       // console.log(item)
       const shape = message.shape;
@@ -138,9 +141,12 @@ export class DrawManager {
           this.ctx
         );
       } else if (shape.type == "text"){
-        this.ctx.font = "20px Aerial";
-        this.ctx.fillText(shape.content, shape.x, shape.y, shape.width);
-        console.log(shape)
+        const lines = shape.content.split('\n');
+        
+        for(let i = 0; i < lines.length; i++){
+          this.ctx.fillText(lines[i], shape.x,shape.y + (i * this.fontSize), shape.width);
+        }
+        
       }
     });
   }
@@ -183,7 +189,7 @@ export class DrawManager {
         position: "absolute",
         left: `${x}px`,
         top: `${y}px`,
-        height: "auto",
+        height: "fit-content",
       });
 
       if(!canvasContainer)
@@ -208,11 +214,14 @@ export class DrawManager {
       const save = () => {
         let content = textarea!.value.trim();
        
-        let mirrorTextArea = document.createElement("textarea");
-        mirrorTextArea.value = content;
+        // let mirrorTextArea = document.createElement("textarea");
+        // mirrorTextArea.style.display = "none";
+        // mirrorTextArea.value = content;
       
-        let width = mirrorTextArea.scrollWidth;   
+        let width = textarea.clientWidth;
+        let height = textarea.clientHeight;
         
+        console.log(width, height);
         if (canvasContainer!.contains(textarea) && textarea != null) {
           textarea.removeEventListener('blur', handleBlur);   
           textarea.remove();
@@ -226,10 +235,10 @@ export class DrawManager {
         }, 50);
         
         // TODO: calculate width dynamically
-        sendTextToBackend(x, y, content, 200, this.socket, this.roomId);
+        sendTextToBackend(x, y, content, width, this.socket, this.roomId);
 
         this.activeTextArea = null;
-        this.activeTextAreaPosition = null;
+        this.activeTextAreaPosition = null;   
       };
 
       textarea?.addEventListener("keydown", (e: KeyboardEvent) => {
