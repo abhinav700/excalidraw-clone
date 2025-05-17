@@ -6,7 +6,7 @@ const useSocket = ({roomId} : {roomId: string}) => {
 
   useEffect(() => {
     try{
-      const ws = new WebSocket(`ws://localhost:8080?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiJhYWUxNDc1Ny1jMDZjLTQ4YWYtOTE1Mi0zNzVkNDlmZTViYjIiLCJpYXQiOjE3NDM4NzI1NDF9.h9cR0xeHRQZZgBjBsXu2Op5wjJnrJf2rkWTZDzJMfBE`);
+      const ws = new WebSocket(`ws://localhost:8080?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI4MDk3Y2VhYi01Yjk1LTRjYTItOGQxZS00ODhhZDJhZTVlMTgiLCJpYXQiOjE3NDY0NjUxOTN9.NV55ZhfalhyssFFIBUt6nmuj3b7xGJp15oMnpTBlVFI`);
 
       ws.onopen = () => {
         setSocket(ws);

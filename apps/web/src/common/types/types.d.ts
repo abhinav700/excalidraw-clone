@@ -1,4 +1,4 @@
-export type Tool = "rectangle" | "circle" | "pencil" | "selection" | "eraser" | "line" | "arrow";
+export type Tool = "rectangle" | "circle" | "pencil" | "selection" | "eraser" | "line" | "arrow" | "text";
 
 export type Rectangle = {
   type: "rectangle",
@@ -33,6 +33,15 @@ export type Line = LineSegment & {
 export type Pencil = {
   type: "pencil";
   lines: LineSegment[] 
+}
+
+export type Text = {
+  type: "text",
+  x: number,
+  y: number, 
+  content: string,
+
+  // TODO: add other things like width and font styling
 }
 export type Shape = Circle | Rectangle | Pencil | Line | Arrow; 
 

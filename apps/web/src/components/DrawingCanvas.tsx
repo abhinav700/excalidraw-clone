@@ -26,8 +26,9 @@ const DrawingCanvas = ({socket, existingShapes, roomId} : DrawingCanvasProps) =>
  const [windowInnerWidth , setWindowInnerWidth]  = useState<number | null>(null); 
  const [canvasManager, setCanvasManager] = useState<DrawManager | null>(null);
  useEffect(() => {
-   setWindowInnerHeight(window.innerHeight);
-   setWindowInnerWidth(window.innerWidth);
+     setWindowInnerHeight(window.innerHeight);
+     setWindowInnerWidth(window.innerWidth);
+
   }, [])
   
   useEffect(() => {
@@ -44,7 +45,7 @@ const DrawingCanvas = ({socket, existingShapes, roomId} : DrawingCanvasProps) =>
 
 
   
-   return   <div className="w-screen h-screen m-0 p-0 overflow-hidden">
+   return   <div className="w-screen h-screen m-0 p-0 overflow-hidden" id="canvas-container">
    {canvasManager && <DrawingToolbar canvasManager={canvasManager!}/>}
       <canvas ref={canvasRef} 
           height={windowInnerHeight!}
