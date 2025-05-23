@@ -1,9 +1,10 @@
 import { Tool, Shape, ExistingShape, LineSegment } from "@/common/types/types";
 import triggerEraseEvent from "@/lib/utils/triggerEraseEvent";
-import { CHAT, ERASE_SHAPE } from "@repo/common/constants";
+import { CHAT, ERASE_SHAPE} from "@repo/common/constants";
 import constructLine from "../utils/constructLine";
 import constructArrow from "../utils/constructArrow";
 import sendTextToBackend from "../utils/textareaUtils/sendTextToBackend";
+import { TEXTAREA_PADDING, TEXTAREA_BORDER_SIZE } from "../constants";
 
 export class DrawManager {
   private canvas: HTMLCanvasElement;
@@ -142,9 +143,13 @@ export class DrawManager {
         );
       } else if (shape.type == "text"){
         const lines = shape.content.split('\n');
-        
+        const initialOffset = TEXTAREA_BORDER_SIZE + TEXTAREA_PADDING;
+        this.ctx.textBaseline = "top";
         for(let i = 0; i < lines.length; i++){
-          this.ctx.fillText(lines[i], shape.x,shape.y + (i * this.fontSize), shape.width);
+         
+          const lineY = shape.startY + initialOffset + (i * 1.5 * this.fontSize);
+          const lineX = shape.startX + initialOffset;
+          this.ctx.fillText(lines[i], lineX ,lineY, shape.width);
         }
         
       }
@@ -178,108 +183,170 @@ export class DrawManager {
     }
   };
   
-  private handleText(e: MouseEvent) {
+  // Assuming sendTextToBackend, this.fontSize, this.socket, this.roomId,
+// this.activeTextArea, this.activeTextAreaPosition are defined in the class scope.
+// Assuming sendTextToBackend, this.fontSize, this.socket, this.roomId,
+// this.activeTextArea, this.activeTextAreaPosition are defined in the class scope.
+private handleText(e: MouseEvent) {
     try {
-      
-      let x = e.clientX, y = e.clientY;
-      const canvasContainer = document.getElementById("canvas-container");
-      let textarea: HTMLTextAreaElement | null = document.createElement("textarea");
-     
-      Object.assign(textarea.style, {
-        position: "absolute",
-        left: `${x}px`,
-        top: `${y}px`,
-        height: "fit-content",
-      });
+        let x = e.clientX;
+        let y = e.clientY;
+        const canvasContainer = document.getElementById("canvas-container");
+        let textarea: HTMLTextAreaElement | null = document.createElement("textarea");
 
-      if(!canvasContainer)
-        return null;
-      
-      canvasContainer?.appendChild(textarea);
-      
-      setTimeout(() => {
-        textarea!.focus();
-      }, 50)      
-      this.activeTextArea = textarea;
-      this.activeTextAreaPosition = { x, y};
+        // --- State Flag: CRITICAL for managing textarea behavior ---
 
-      let hasUnsavedChanges: boolean = true;
-
-      const resizeTextArea = () => {
-        Object.assign(textarea!.style, {
-          height: `${textarea!.scrollHeight}px`,
+        // --- Initial Textarea Styling (Single-Line, Auto-Width Mode) ---
+        Object.assign(textarea.style, {
+            position: "absolute",
+            left: `${x}px`,
+            top: `${y}px`,
+            padding: `${TEXTAREA_PADDING}px`, // Standardized padding for calculation consistency
+            minHeight: `${this.fontSize + 4}px`, // Minimum height for a single line of text
+            height: `${this.fontSize + 4}px`, // Explicitly set initial height for single line
+            overflow: "hidden", // Hide all scrollbars initially (we'll manage size with JS)
+            minWidth: "100px", // A minimum visual width for the input box
+            border: `${TEXTAREA_BORDER_SIZE}px solid #ccc`,
+            outline: "none",
+            fontSize: `${this.fontSize}px`,
+            fontFamily: "Aerial", // Crucial: Match font for accurate measurement
+            boxSizing: "border-box", // Include padding/border in width/height calculation
+            resize: "none", // Disable user manual resize handle
+            whiteSpace: "nowrap" // KEY: Prevents text wrapping, allowing horizontal expansion
         });
-      };
 
-      const save = () => {
-        let content = textarea!.value.trim();
-       
-        // let mirrorTextArea = document.createElement("textarea");
-        // mirrorTextArea.style.display = "none";
-        // mirrorTextArea.value = content;
-      
-        let width = textarea.clientWidth;
-        let height = textarea.clientHeight;
-        
-        console.log(width, height);
-        if (canvasContainer!.contains(textarea) && textarea != null) {
-          textarea.removeEventListener('blur', handleBlur);   
-          textarea.remove();
-          
+        if (!canvasContainer) {
+            console.error("Canvas container not found.");
+            return;
         }
+
+        canvasContainer.appendChild(textarea);
+
+        // --- Hidden Mirror Span for Accurate Measurement ---
+        let mirrorSpan: HTMLSpanElement | null = document.createElement("span");
+        Object.assign(mirrorSpan.style, {
+            visibility: "hidden", // Make it invisible
+            position: "absolute", // Take it out of flow
+            top: '0',
+            left: '0',
+            // whiteSpace starts as nowrap to match the textarea's initial state
+            whiteSpace: "pre-wrap",
+            fontSize: `${this.fontSize}px`,
+            minWidth: "100px",
+            fontFamily: textarea.style.fontFamily,
+            padding: textarea.style.padding,
+            boxSizing: textarea.style.boxSizing
+        });
+        document.body.appendChild(mirrorSpan);
+
+        // Function to dynamically resize the textarea based on its mode
+        const resizeTextarea = () => {
+            if (!textarea || !mirrorSpan) return;
+
+            mirrorSpan.textContent = textarea.value || " ";
+            textarea.style.width = `${Math.max(mirrorSpan.offsetWidth + 4, 100)}px`; // +8px for cursor/buffer
+            textarea.style.height = `${Math.max(textarea.scrollHeight, this.fontSize + 4)}px`;
+
+        };
+
         setTimeout(() => {
-          
-          this.ctx.font = "20px aerial";
-          this.ctx.fillStyle = "white";
-          this.ctx.fillText(content, x, y + 20, 200)
+            textarea!.focus();
+            resizeTextarea(); // Set initial width/height based on placeholder or default value
         }, 50);
-        
-        // TODO: calculate width dynamically
-        sendTextToBackend(x, y, content, width, this.socket, this.roomId);
 
-        this.activeTextArea = null;
-        this.activeTextAreaPosition = null;   
-      };
+        this.activeTextArea = textarea;
+        this.activeTextAreaPosition = { x, y };
 
-      textarea?.addEventListener("keydown", (e: KeyboardEvent) => {
-        if (e.key == "Enter") {
-          if (e.metaKey || e.ctrlKey) {
-            e.preventDefault();
-            save();
-          } else {
+        let hasUnsavedChanges: boolean = true;
+
+        const save = () => {
+            let content = textarea!.value.trim();
+
+            let width = textarea!.offsetWidth;
+            let height = textarea!.offsetHeight;
+            sendTextToBackend(x, y, content, width, height, this.socket, this.roomId);
+
+            if (canvasContainer!.contains(textarea!) && textarea !== null) {
+                // Remove all event listeners to prevent memory leaks
+                textarea.removeEventListener('blur', handleBlur);
+                textarea.removeEventListener('keydown', handleKeydown);
+                textarea.removeEventListener('input', handleInput);
+                textarea.remove(); // Remove textarea from DOM
+            }
+
+            // Clean up the mirror span
+            if (mirrorSpan && document.body.contains(mirrorSpan)) {
+                document.body.removeChild(mirrorSpan);
+                mirrorSpan = null; // Nullify reference to aid garbage collection
+            }
+
+            this.activeTextArea = null;
+            this.activeTextAreaPosition = null;
+        };
+
+        // Keydown handler to detect Enter press
+        const handleKeydown = (e: KeyboardEvent) => {
+            if (!textarea) return;
+
+            if (e.key === "Enter") {
+                if (e.metaKey || e.ctrlKey) {
+                    // Ctrl/Cmd + Enter: Save and close (common shortcut)
+                    e.preventDefault();
+                    save();
+                } else {
+                    // Just Enter: Switch to multi-line mode and add a newline
+                    e.preventDefault(); // Prevent browser's default Enter behavior
+
+
+                    const start = textarea.selectionStart;
+                    const end = textarea.selectionEnd;
+                    const currentValue = textarea.value;
+
+                    textarea.value = currentValue.substring(0, start) + '\n' + currentValue.substring(end);
+
+                    textarea.selectionStart = textarea.selectionEnd = start + 1;
+
+                    resizeTextarea();
+                }
+            }
+        };
+
+        // Input handler to trigger resize on any text change
+        const handleInput = () => {
             hasUnsavedChanges = true;
-            resizeTextArea();
-          }
-        }
-      });
+            resizeTextarea();
+        };
 
-      textarea.addEventListener("input", () => {
-        hasUnsavedChanges = true;
-        resizeTextArea();
-      });
+        // Attach event listeners
+        textarea.addEventListener("keydown", handleKeydown);
+        textarea.addEventListener("input", handleInput);
 
-      const handleClickOutside = (e: MouseEvent) => {
-        if (!textarea!.contains(e.target as Node)) {
-          document.removeEventListener("mousedown", handleClickOutside);
-          save();
-        }
-      };
+        // Click outside logic to save
+        const handleClickOutside = (e: MouseEvent) => {
+            if (textarea && !textarea.contains(e.target as Node)) {
+                document.removeEventListener("mousedown", handleClickOutside);
+                save();
+            }
+        };
 
-      setTimeout(() => {
-        document.addEventListener("mousedown", handleClickOutside);
-      }, 100);
-  
-      const handleBlur = () => {
-        document.removeEventListener("mousedown", handleClickOutside);
-        if (hasUnsavedChanges) {
-          save();
-        }
-      }
-      textarea.addEventListener("blur", handleBlur);
+        // Add mousedown listener after a small delay to avoid immediate trigger
+        setTimeout(() => {
+            document.addEventListener("mousedown", handleClickOutside);
+        }, 100);
+
+        // Blur handler to save changes
+        const handleBlur = () => {
+            document.removeEventListener("mousedown", handleClickOutside);
+            if (hasUnsavedChanges) {
+                save();
+            }
+        };
+        textarea.addEventListener("blur", handleBlur);
+
     } catch (error) {
-      console.log(error);
+        console.error("Error in handleText:", error);
     }
-  }
+}
   // TODO: replace with React.MouseEvent<HtmlCanvasElement>
   public mouseMoveHandler = (e: MouseEvent) => {
     try {

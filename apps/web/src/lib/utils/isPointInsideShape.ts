@@ -4,22 +4,7 @@ import { ERASER_OFFSET } from "../constants";
 const isPointInsideShape = (x: number, y: number, shape: Shape) => {
     switch(shape.type){
       case "rectangle":
-        let {startX, startY, height, width} = shape;
-        let horizontallyInside: boolean = false , verticallyInside : boolean = false;
-        
-        if(height >= 0)
-          verticallyInside = y >= startY && y <= startY + height;
-        
-        else if(height <= 0)
-          verticallyInside = y <= startY && y >= startY + height;
-
-        if(width >= 0)
-          horizontallyInside = x >= startX && x <= startX + width;
-        
-        else if(width <= 0)
-          horizontallyInside = x <= startX && x >= startX + width;
-
-        return horizontallyInside && verticallyInside;
+       return isWithinRectangleBounds(x, y, shape);
       
       case "circle":
         const {centerX, centerY, radius} = shape;
@@ -35,10 +20,36 @@ const isPointInsideShape = (x: number, y: number, shape: Shape) => {
           }
         }
         break;
-
-      default:
-        break;
+      case "text":
+        return isWithinRectangleBounds(x, y, shape);
     }
+}
+
+const isWithinRectangleBounds= (x: number, y: number, shape: Shape) => {
+  try{
+      if(shape.type != "rectangle" && shape.type!= "text")
+        throw new Error("Invalid error");
+
+      let {startX, startY, height, width} = shape;
+      console.log("inside function, ", shape)
+      let horizontallyInside: boolean = false , verticallyInside : boolean = false;
+      
+      if(height >= 0)
+        verticallyInside = y >= startY && y <= startY + height;
+      
+      else if(height <= 0)
+        verticallyInside = y <= startY && y >= startY + height;
+
+      if(width >= 0)
+        horizontallyInside = x >= startX && x <= startX + width;
+      
+      else if(width <= 0)
+        horizontallyInside = x <= startX && x >= startX + width;
+
+      return horizontallyInside && verticallyInside;
+  } catch(err){
+    console.log(err);
+  }
 }
 
 function isPointOnLineSegment(

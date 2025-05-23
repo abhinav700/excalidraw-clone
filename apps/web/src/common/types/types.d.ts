@@ -37,13 +37,15 @@ export type Pencil = {
 
 export type Text = {
   type: "text",
-  x: number,
-  y: number, 
+  startX: number,
+  startY: number,
+  width: number,
+  height: number 
   content: string,
 
   // TODO: add other things like width and font styling
 }
-export type Shape = Circle | Rectangle | Pencil | Line | Arrow; 
+export type Shape = Circle | Rectangle | Pencil | Line | Arrow | Text; 
 
 export type ExistingShape = {
   message:string;

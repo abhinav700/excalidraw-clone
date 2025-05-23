@@ -1,8 +1,8 @@
 import { CHAT } from "@repo/common/constants";
 
-type SendTextToBackend = (x: number, y: number, content: string, width: number, socket: WebSocket, roomId: string) => void;
+type SendTextToBackend = (startX: number, startY: number, content: string, width: number, height: number, socket: WebSocket, roomId: string) => void;
 
-const sendTextToBackend: SendTextToBackend = (x: number, y: number, content: string, width: number, socket: WebSocket, roomId: string) => {
+const sendTextToBackend: SendTextToBackend = (startX: number, startY: number, content: string, width: number, height: number, socket: WebSocket, roomId: string) => {
   try{
     
    socket.send(
@@ -11,10 +11,11 @@ const sendTextToBackend: SendTextToBackend = (x: number, y: number, content: str
           message: JSON.stringify({
             shape: {
               type: 'text',
-              x,
-              y,
+              startX,
+              startY,
               content,
-              width
+              width,
+              height
             },
           }),
           roomId: roomId,
