@@ -1,4 +1,4 @@
-export type Tool = "rectangle" | "circle" | "pencil" | "selection" | "eraser" | "line" | "arrow" | "text";
+export type Tool = "rectangle" | "circle" | "pencil" | "selection" | "eraser" | "line" | "arrow" | "text" | "hand";
 
 export type Rectangle = {
   type: "rectangle",
@@ -6,6 +6,11 @@ export type Rectangle = {
   startY: number;
   width: number;
   height: number;
+}
+
+export type Coordinates = {
+  x: number, 
+  y: numberK
 }
 
 export type Circle = {

@@ -1,10 +1,11 @@
-import { Tool, Shape, ExistingShape, LineSegment } from "@/common/types/types";
+import { Tool, Shape, ExistingShape, LineSegment, Coordinates } from "@/common/types/types";
 import triggerEraseEvent from "@/lib/utils/triggerEraseEvent";
 import { CHAT, ERASE_SHAPE} from "@repo/common/constants";
 import constructLine from "../utils/constructLine";
 import constructArrow from "../utils/constructArrow";
 import sendTextToBackend from "../utils/textareaUtils/sendTextToBackend";
 import { TEXTAREA_PADDING, TEXTAREA_BORDER_SIZE } from "../constants";
+import calculatePanOffset from "../utils/calculatePanOffset";
 
 export class DrawManager {
   private canvas: HTMLCanvasElement;
@@ -18,8 +19,14 @@ export class DrawManager {
   private isDrawing: boolean;
   private lines: LineSegment[];
   private activeTextArea: HTMLTextAreaElement | null;
-  private activeTextAreaPosition: { x: number; y: number } | null;
+  private activeTextAreaPosition: Coordinates | null;
   private fontSize: number;
+  private canvasCenter: Coordinates;
+  private panStart: Coordinates | null;
+  private panEnd: Coordinates | null;
+  private panOffset: Coordinates;
+  private isPanning: boolean;
+
   constructor(
     canvas: HTMLCanvasElement,
     socket: WebSocket,
@@ -43,18 +50,25 @@ export class DrawManager {
     this.lines = [];
     this.activeTextArea = null;
     this.activeTextAreaPosition = null;
+    this.canvasCenter = {x: this.canvas.width / 2, y: this.canvas.height / 2};
+    this.panStart = null;
+    this.panEnd = null;
+    this.isPanning = false;
+    this.panOffset = {x: 0, y : 0};
+
     this.drawExistingShapes();
     this.initSocketHandlers();
+
     this.canvas.addEventListener("mousedown", this.mouseDownHandler);
     this.canvas.addEventListener("mousemove", this.mouseMoveHandler);
     this.canvas.addEventListener("mouseup", this.mouseUpHandler);
   }
+  
   destroy() {
     this.canvas.removeEventListener("mousedown", this.mouseDownHandler);
     this.canvas.removeEventListener("mousemove", this.mouseMoveHandler);
     this.canvas.removeEventListener("mouseup", this.mouseUpHandler);
   }
-
 
   public initSocketHandlers() {
     this.socket.onmessage = async (event) => {
@@ -63,19 +77,20 @@ export class DrawManager {
         console.log(parsedData);
         switch (parsedData.type) {
           case CHAT:
-            // console.log(parsedData.message);
             this.existingShapes.push({
               id: parsedData.id,
               message: parsedData.message,
             });
             this.drawExistingShapes();
             break;
+
           case ERASE_SHAPE:
             console.log("rece");
             this.existingShapes = this.existingShapes.filter(
               (shape) => shape.id != parsedData.id
             );
             this.drawExistingShapes();
+            break;
           default:
             break;
         }
@@ -87,16 +102,11 @@ export class DrawManager {
 
   public drawExistingShapes() {
     this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
-    // console.log(this.existingShapes);
 
     this.existingShapes.map(async (item: ExistingShape) => {
-      // this.ctx.strokeStyle = "red";
-      // this.ctx.fillStyle = 'white';
       const message = await JSON.parse(item.message);
-      // console.log(item)
       const shape = message.shape;
-
-      // console.log(shape);
+     this.ctx.translate(this.panOffset.x, this.panOffset.y);
       if (shape.type == "rectangle") {
         this.ctx.strokeRect(
           shape.startX,
@@ -163,10 +173,16 @@ export class DrawManager {
   // TODO: replace with React.MouseEvent<HtmlCanvasElement>
   public mouseDownHandler = async (e: MouseEvent) => {
     if (this.selectedTool == "selection") return;
-    this.isDrawing = true;
+    
     this.startX = e.clientX;
+    this.isDrawing = true;
     this.startY = e.clientY;
-
+    
+    if(this.selectedTool == 'hand'){
+      this.panStart = {x: e.clientX , y: e.clientY};
+      this.isPanning = true;
+      return;
+    }
     if (this.selectedTool == "pencil") {
       this.lines = [];
     } else if (this.selectedTool == "eraser") {
@@ -183,10 +199,6 @@ export class DrawManager {
     }
   };
   
-  // Assuming sendTextToBackend, this.fontSize, this.socket, this.roomId,
-// this.activeTextArea, this.activeTextAreaPosition are defined in the class scope.
-// Assuming sendTextToBackend, this.fontSize, this.socket, this.roomId,
-// this.activeTextArea, this.activeTextAreaPosition are defined in the class scope.
 private handleText(e: MouseEvent) {
     try {
         let x = e.clientX;
@@ -194,26 +206,24 @@ private handleText(e: MouseEvent) {
         const canvasContainer = document.getElementById("canvas-container");
         let textarea: HTMLTextAreaElement | null = document.createElement("textarea");
 
-        // --- State Flag: CRITICAL for managing textarea behavior ---
-
-        // --- Initial Textarea Styling (Single-Line, Auto-Width Mode) ---
+        
         Object.assign(textarea.style, {
             position: "absolute",
             left: `${x}px`,
             top: `${y}px`,
-            padding: `${TEXTAREA_PADDING}px`, // Standardized padding for calculation consistency
-            minHeight: `${this.fontSize + 4}px`, // Minimum height for a single line of text
-            height: `${this.fontSize + 4}px`, // Explicitly set initial height for single line
-            overflow: "hidden", // Hide all scrollbars initially (we'll manage size with JS)
-            minWidth: "100px", // A minimum visual width for the input box
+            padding: `${TEXTAREA_PADDING}px`,
+            minHeight: `${this.fontSize + 4}px`,
+            height: `${this.fontSize + 4}px`,
+            overflow: "hidden",
+            minWidth: "100px",
             border: `${TEXTAREA_BORDER_SIZE}px solid #ccc`,
             outline: "none",
             fontSize: `${this.fontSize}px`,
-            fontFamily: "Aerial", // Crucial: Match font for accurate measurement
-            boxSizing: "border-box", // Include padding/border in width/height calculation
-            resize: "none", // Disable user manual resize handle
-            whiteSpace: "nowrap" // KEY: Prevents text wrapping, allowing horizontal expansion
-        });
+            fontFamily: "Aerial",
+            boxSizing: "border-box",
+            resize: "none",
+            whiteSpace: "nowrap"
+      });
 
         if (!canvasContainer) {
             console.error("Canvas container not found.");
@@ -222,14 +232,12 @@ private handleText(e: MouseEvent) {
 
         canvasContainer.appendChild(textarea);
 
-        // --- Hidden Mirror Span for Accurate Measurement ---
         let mirrorSpan: HTMLSpanElement | null = document.createElement("span");
         Object.assign(mirrorSpan.style, {
-            visibility: "hidden", // Make it invisible
-            position: "absolute", // Take it out of flow
+            visibility: "hidden", 
+            position: "absolute", 
             top: '0',
             left: '0',
-            // whiteSpace starts as nowrap to match the textarea's initial state
             whiteSpace: "pre-wrap",
             fontSize: `${this.fontSize}px`,
             minWidth: "100px",
@@ -239,19 +247,18 @@ private handleText(e: MouseEvent) {
         });
         document.body.appendChild(mirrorSpan);
 
-        // Function to dynamically resize the textarea based on its mode
         const resizeTextarea = () => {
             if (!textarea || !mirrorSpan) return;
 
             mirrorSpan.textContent = textarea.value || " ";
-            textarea.style.width = `${Math.max(mirrorSpan.offsetWidth + 4, 100)}px`; // +8px for cursor/buffer
+            textarea.style.width = `${Math.max(mirrorSpan.offsetWidth + 4, 100)}px`; 
             textarea.style.height = `${Math.max(textarea.scrollHeight, this.fontSize + 4)}px`;
 
         };
 
         setTimeout(() => {
             textarea!.focus();
-            resizeTextarea(); // Set initial width/height based on placeholder or default value
+            resizeTextarea(); 
         }, 50);
 
         this.activeTextArea = textarea;
@@ -423,7 +430,12 @@ private handleText(e: MouseEvent) {
         case "arrow":
           constructArrow(this.startX, this.startY, endX, endY, this.ctx);
           break;
-        
+        case "hand":
+          this.panEnd = {x: e.clientX, y: e.clientY};
+          this.panOffset = calculatePanOffset(this.panStart!, this.panEnd!)!;
+          console.log(this.panOffset);
+          this.panStart = this.panEnd;
+          break;
         default:
           break;
       }
@@ -434,15 +446,18 @@ private handleText(e: MouseEvent) {
 
   // TODO: replace with React.MouseEvent<HtmlCanvasElement>
   public mouseUpHandler = (e: MouseEvent) => {
-    if (this.selectedTool == "selection" || this.selectedTool == "text") return;
+    
     try {
+      if (this.selectedTool == "selection" || this.selectedTool == "text") return;
+
       this.isDrawing = false;
       const endX = e.clientX,
-        endY = e.clientY;
+      endY = e.clientY;
       const width: number = endX - this.startX;
       const height: number = endY - this.startY;
       let shape: Shape | null;
-
+      
+    
       switch (this.selectedTool) {
         case "rectangle":
           shape = {
@@ -495,10 +510,15 @@ private handleText(e: MouseEvent) {
             endY,
           };
           break;
+        case "hand":
+          this.panEnd = {x: e.clientX, y: e.clientY};
+          this.panOffset = calculatePanOffset(this.panStart!, this.panEnd!)!;
+          this.isPanning = false;
+          return;
         default:
           return;
       }
-
+      
       this.socket.send(
         JSON.stringify({
           type: CHAT,
