@@ -45,7 +45,7 @@ const DrawingCanvas = ({socket, existingShapes, roomId} : DrawingCanvasProps) =>
 
 
   
-   return   <div className="w-screen h-screen m-0 p-0 overflow-hidden" id="canvas-container">
+   return   <div className="w-screen h-screen m-0 p-0 overflow-hidden bg-green-500" id="canvas-container">
    {canvasManager && <DrawingToolbar canvasManager={canvasManager!}/>}
       <canvas ref={canvasRef} 
           height={windowInnerHeight!}

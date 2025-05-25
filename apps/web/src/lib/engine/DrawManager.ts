@@ -24,7 +24,8 @@ export class DrawManager {
   private canvasCenter: Coordinates;
   private panStart: Coordinates | null;
   private panEnd: Coordinates | null;
-  private panOffset: Coordinates;
+  private totalPanOffset: Coordinates;
+  private currentPanOffset: Coordinates;
   private isPanning: boolean;
 
   constructor(
@@ -54,8 +55,8 @@ export class DrawManager {
     this.panStart = null;
     this.panEnd = null;
     this.isPanning = false;
-    this.panOffset = {x: 0, y : 0};
-
+    this.totalPanOffset = {x: 0, y : 0};
+    this.currentPanOffset= {x: 0, y : 0};
     this.drawExistingShapes();
     this.initSocketHandlers();
 
@@ -74,7 +75,6 @@ export class DrawManager {
     this.socket.onmessage = async (event) => {
       try {
         const parsedData = await JSON.parse(event.data);
-        console.log(parsedData);
         switch (parsedData.type) {
           case CHAT:
             this.existingShapes.push({
@@ -85,7 +85,6 @@ export class DrawManager {
             break;
 
           case ERASE_SHAPE:
-            console.log("rece");
             this.existingShapes = this.existingShapes.filter(
               (shape) => shape.id != parsedData.id
             );
@@ -101,12 +100,11 @@ export class DrawManager {
   }
 
   public drawExistingShapes() {
-    this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
-
+    this.ctx.clearRect(-this.totalPanOffset.x, -this.totalPanOffset.y, this.canvas.width, this.canvas.height);
+     
     this.existingShapes.map(async (item: ExistingShape) => {
       const message = await JSON.parse(item.message);
       const shape = message.shape;
-     this.ctx.translate(this.panOffset.x, this.panOffset.y);
       if (shape.type == "rectangle") {
         this.ctx.strokeRect(
           shape.startX,
@@ -173,11 +171,9 @@ export class DrawManager {
   // TODO: replace with React.MouseEvent<HtmlCanvasElement>
   public mouseDownHandler = async (e: MouseEvent) => {
     if (this.selectedTool == "selection") return;
-    
-    this.startX = e.clientX;
     this.isDrawing = true;
-    this.startY = e.clientY;
-    
+    this.startX = e.clientX - this.totalPanOffset.x;
+    this.startY = e.clientY - this.totalPanOffset.y;
     if(this.selectedTool == 'hand'){
       this.panStart = {x: e.clientX , y: e.clientY};
       this.isPanning = true;
@@ -201,11 +197,11 @@ export class DrawManager {
   
 private handleText(e: MouseEvent) {
     try {
-        let x = e.clientX;
-        let y = e.clientY;
+        let x = e.clientX - this.totalPanOffset.x;
+        let y = e.clientY - this.totalPanOffset.y;
         const canvasContainer = document.getElementById("canvas-container");
+      
         let textarea: HTMLTextAreaElement | null = document.createElement("textarea");
-
         
         Object.assign(textarea.style, {
             position: "absolute",
@@ -364,10 +360,10 @@ private handleText(e: MouseEvent) {
       )
         return;
 
-      const endX = e.clientX;
-      const endY = e.clientY;
-
-      this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+      const endX = e.clientX - this.totalPanOffset.x; 
+      const endY = e.clientY - this.totalPanOffset.y;
+     
+      this.ctx.clearRect(-this.totalPanOffset.x, -this.totalPanOffset.y, this.canvas.width, this.canvas.height);
 
       this.drawExistingShapes();
 
@@ -392,7 +388,6 @@ private handleText(e: MouseEvent) {
           break;
 
         case "pencil":
-          // console.log("inside pencil case mouseMove")
           this.lines!.map((line: LineSegment) => {
             constructLine(
               line.startX,
@@ -416,8 +411,8 @@ private handleText(e: MouseEvent) {
 
         case "eraser":
           triggerEraseEvent(
-            e.clientX,
-            e.clientY,
+            e.clientX - this.totalPanOffset.x,
+            e.clientY - this.totalPanOffset.y,
             this.existingShapes,
             this.socket,
             this.roomId
@@ -432,8 +427,12 @@ private handleText(e: MouseEvent) {
           break;
         case "hand":
           this.panEnd = {x: e.clientX, y: e.clientY};
-          this.panOffset = calculatePanOffset(this.panStart!, this.panEnd!)!;
-          console.log(this.panOffset);
+          this.currentPanOffset = calculatePanOffset(this.panStart!, this.panEnd!)!;
+          this.ctx.translate(this.currentPanOffset.x, this.currentPanOffset.y);
+          this.totalPanOffset = {
+            x: this.currentPanOffset.x + this.totalPanOffset.x,
+            y: this.currentPanOffset.y + this.totalPanOffset.y    
+          }
           this.panStart = this.panEnd;
           break;
         default:
@@ -451,8 +450,8 @@ private handleText(e: MouseEvent) {
       if (this.selectedTool == "selection" || this.selectedTool == "text") return;
 
       this.isDrawing = false;
-      const endX = e.clientX,
-      endY = e.clientY;
+      const endX = e.clientX - this.totalPanOffset.x,
+      endY = e.clientY - this.totalPanOffset.y;
       const width: number = endX - this.startX;
       const height: number = endY - this.startY;
       let shape: Shape | null;
@@ -483,7 +482,6 @@ private handleText(e: MouseEvent) {
           break;
 
         case "pencil":
-          // console.log("mouse up inside pencil case")
           shape = {
             type: "pencil",
             lines: this.lines!,
@@ -511,14 +509,12 @@ private handleText(e: MouseEvent) {
           };
           break;
         case "hand":
-          this.panEnd = {x: e.clientX, y: e.clientY};
-          this.panOffset = calculatePanOffset(this.panStart!, this.panEnd!)!;
           this.isPanning = false;
           return;
         default:
           return;
       }
-      
+
       this.socket.send(
         JSON.stringify({
           type: CHAT,
