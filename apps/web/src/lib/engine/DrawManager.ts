@@ -21,13 +21,14 @@ export class DrawManager {
   private activeTextArea: HTMLTextAreaElement | null;
   private activeTextAreaPosition: Coordinates | null;
   private fontSize: number;
-  private canvasCenter: Coordinates;
   private panStart: Coordinates | null;
   private panEnd: Coordinates | null;
   private totalPanOffset: Coordinates;
   private currentPanOffset: Coordinates;
   private isPanning: boolean;
-
+  private isCtrlMetaActive: boolean;
+  private canvasCenter: Coordinates;
+  private scale: number;
   constructor(
     canvas: HTMLCanvasElement,
     socket: WebSocket,
@@ -39,6 +40,7 @@ export class DrawManager {
     this.roomId = roomId;
     this.selectedTool = "selection";
     this.socket = socket;
+    this.scale = 1;
     this.startX = 0;
     this.startY = 0;
     this.isDrawing = false;
@@ -55,20 +57,24 @@ export class DrawManager {
     this.panStart = null;
     this.panEnd = null;
     this.isPanning = false;
-    this.totalPanOffset = {x: 0, y : 0};
+    this.totalPanOffset = {x: 0, y: 3};
+    this.isCtrlMetaActive = false;
     this.currentPanOffset= {x: 0, y : 0};
+    this.canvasCenter = {x: this.canvas.width/2, y: this.canvas.height / 2};
     this.drawExistingShapes();
     this.initSocketHandlers();
-
     this.canvas.addEventListener("mousedown", this.mouseDownHandler);
     this.canvas.addEventListener("mousemove", this.mouseMoveHandler);
     this.canvas.addEventListener("mouseup", this.mouseUpHandler);
+    this.canvas.addEventListener("wheel", this.mouseZoomHandler);
+    this.canvas.focus();
   }
   
   destroy() {
     this.canvas.removeEventListener("mousedown", this.mouseDownHandler);
     this.canvas.removeEventListener("mousemove", this.mouseMoveHandler);
     this.canvas.removeEventListener("mouseup", this.mouseUpHandler);
+    this.canvas.removeEventListener("wheel", this.mouseZoomHandler);
   }
 
   public initSocketHandlers() {
@@ -100,12 +106,14 @@ export class DrawManager {
   }
 
   public drawExistingShapes() {
-    this.ctx.clearRect(-this.totalPanOffset.x, -this.totalPanOffset.y, this.canvas.width, this.canvas.height);
-     
+    this.ctx.clearRect(-this.totalPanOffset.x, -this.totalPanOffset.y, this.canvas.width / this.scale, this.canvas.height/ this.scale);
+    this.ctx.fillStyle="red";
     this.existingShapes.map(async (item: ExistingShape) => {
       const message = await JSON.parse(item.message);
       const shape = message.shape;
       if (shape.type == "rectangle") {
+        console.log(this.scale);
+        console.log(this.startX, this.startY)
         this.ctx.strokeRect(
           shape.startX,
           shape.startY,
@@ -168,12 +176,28 @@ export class DrawManager {
     this.selectedTool = tool;
   }
 
+  private mouseZoomHandler = (e: WheelEvent) => {
+    if(e.ctrlKey || e.metaKey){
+      e.preventDefault();
+      let previousScale = this.scale;
+      if(e.deltaY > 0)
+        this.scale = Math.max(0.3, this.scale - 0.1);
+      else
+        this.scale = Math.min(3, this.scale + 0.1);
+
+      let newScale = this.scale/previousScale;
+      this.ctx.scale(newScale, newScale); 
+      this.drawExistingShapes();
+    }
+  }
+ 
+ 
   // TODO: replace with React.MouseEvent<HtmlCanvasElement>
-  public mouseDownHandler = async (e: MouseEvent) => {
+  private mouseDownHandler = async (e: MouseEvent) => {
     if (this.selectedTool == "selection") return;
     this.isDrawing = true;
-    this.startX = e.clientX - this.totalPanOffset.x;
-    this.startY = e.clientY - this.totalPanOffset.y;
+    this.startX = (e.clientX - this.totalPanOffset.x)/this.scale;
+    this.startY = (e.clientY - this.totalPanOffset.y)/this.scale;
     if(this.selectedTool == 'hand'){
       this.panStart = {x: e.clientX , y: e.clientY};
       this.isPanning = true;
@@ -267,7 +291,7 @@ private handleText(e: MouseEvent) {
 
             let width = textarea!.offsetWidth;
             let height = textarea!.offsetHeight;
-            sendTextToBackend(x, y, content, width, height, this.socket, this.roomId);
+            sendTextToBackend(x/this.scale, y/this.scale, content, width, height, this.socket, this.roomId);
 
             if (canvasContainer!.contains(textarea!) && textarea !== null) {
                 // Remove all event listeners to prevent memory leaks
@@ -360,10 +384,10 @@ private handleText(e: MouseEvent) {
       )
         return;
 
-      const endX = e.clientX - this.totalPanOffset.x; 
-      const endY = e.clientY - this.totalPanOffset.y;
+      const endX = (e.clientX - this.totalPanOffset.x)/this.scale; 
+      const endY = (e.clientY - this.totalPanOffset.y)/this.scale;
      
-      this.ctx.clearRect(-this.totalPanOffset.x, -this.totalPanOffset.y, this.canvas.width, this.canvas.height);
+      this.ctx.clearRect(-this.totalPanOffset.x/ this.scale, -this.totalPanOffset.y/this.scale, this.canvas.width/ this.scale, this.canvas.height/this.scale);
 
       this.drawExistingShapes();
 
@@ -450,8 +474,10 @@ private handleText(e: MouseEvent) {
       if (this.selectedTool == "selection" || this.selectedTool == "text") return;
 
       this.isDrawing = false;
-      const endX = e.clientX - this.totalPanOffset.x,
-      endY = e.clientY - this.totalPanOffset.y;
+      
+      const endX = (e.clientX - this.totalPanOffset.x)/this.scale,
+      endY = (e.clientY - this.totalPanOffset.y)/this.scale;
+
       const width: number = endX - this.startX;
       const height: number = endY - this.startY;
       let shape: Shape | null;

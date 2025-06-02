@@ -15,7 +15,7 @@ const DrawingToolbar = ({canvasManager}: DrawingToolbarProps) => {
     }, [tool])
  
   
-    return <div className="flex  absolute top-[5%] rounded-lg left-[40%] py-0 bg-[#282928] items-center justify-center">
+    return <div className="flex  absolute top-[5%] rounded-lg left-[40%] py-0 bg-slate-800  text-white items-center justify-center">
     <ToolButton toolName="selection" setTool={setTool} tool={tool}>
       <MousePointer/>
     </ToolButton>
@@ -57,7 +57,7 @@ interface ToolButtonProps {
 const ToolButton = ({ toolName, children, setTool, tool }: ToolButtonProps) => {
   return (
     <div
-      className={`w-full flex items-center justify-center cursor-pointer my-1 rounded-xl ${tool == toolName && "bg-[#918d8d]"} hover:bg-[#918d8d] p-2`}
+      className={`w-full flex items-center justify-center cursor-pointer my-1 rounded-xl ${tool == toolName && "bg-slate-400"} hover:bg-slate-400 p-2`}
       onClick={(e) => {setTool(toolName)}}
     >
       {children}
