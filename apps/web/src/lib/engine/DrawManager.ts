@@ -24,7 +24,6 @@ export class DrawManager {
   private panStart: Coordinates | null;
   private panEnd: Coordinates | null;
   private totalPanOffset: Coordinates;
-  private currentPanOffset: Coordinates;
   private isPanning: boolean;
   private isCtrlMetaActive: boolean;
   private canvasCenter: Coordinates;
@@ -59,7 +58,6 @@ export class DrawManager {
     this.isPanning = false;
     this.totalPanOffset = {x: 0, y: 3};
     this.isCtrlMetaActive = false;
-    this.currentPanOffset= {x: 0, y : 0};
     this.canvasCenter = {x: this.canvas.width/2, y: this.canvas.height / 2};
     this.drawExistingShapes();
     this.initSocketHandlers();
@@ -106,7 +104,8 @@ export class DrawManager {
   }
 
   public drawExistingShapes() {
-    this.ctx.clearRect(-this.totalPanOffset.x, -this.totalPanOffset.y, this.canvas.width / this.scale, this.canvas.height/ this.scale);
+    this.ctx.setTransform(this.scale, 0, 0, this.scale, this.totalPanOffset.x, this.totalPanOffset.y);
+    this.ctx.clearRect(-this.totalPanOffset.x/this.scale, -this.totalPanOffset.y/this.scale, this.canvas.width / this.scale, this.canvas.height/ this.scale);
     this.ctx.fillStyle="red";
     this.existingShapes.map(async (item: ExistingShape) => {
       const message = await JSON.parse(item.message);
@@ -163,8 +162,8 @@ export class DrawManager {
         this.ctx.textBaseline = "top";
         for(let i = 0; i < lines.length; i++){
          
-          const lineY = shape.startY + initialOffset + (i * 1.5 * this.fontSize);
           const lineX = shape.startX + initialOffset;
+          const lineY = shape.startY + initialOffset + (i * 1.5 * this.fontSize);
           this.ctx.fillText(lines[i], lineX ,lineY, shape.width);
         }
         
@@ -179,15 +178,12 @@ export class DrawManager {
   private mouseZoomHandler = (e: WheelEvent) => {
     if(e.ctrlKey || e.metaKey){
       e.preventDefault();
-      let previousScale = this.scale;
       if(e.deltaY > 0)
         this.scale = Math.max(0.3, this.scale - 0.1);
       else
         this.scale = Math.min(3, this.scale + 0.1);
-
-      let newScale = this.scale/previousScale;
-      this.ctx.scale(newScale, newScale); 
-      this.drawExistingShapes();
+      
+        this.drawExistingShapes();
     }
   }
  
@@ -221,8 +217,8 @@ export class DrawManager {
   
 private handleText(e: MouseEvent) {
     try {
-        let x = e.clientX - this.totalPanOffset.x;
-        let y = e.clientY - this.totalPanOffset.y;
+        let x = e.clientX;
+        let y = e.clientY;
         const canvasContainer = document.getElementById("canvas-container");
       
         let textarea: HTMLTextAreaElement | null = document.createElement("textarea");
@@ -291,7 +287,7 @@ private handleText(e: MouseEvent) {
 
             let width = textarea!.offsetWidth;
             let height = textarea!.offsetHeight;
-            sendTextToBackend(x/this.scale, y/this.scale, content, width, height, this.socket, this.roomId);
+            sendTextToBackend((x - this.totalPanOffset.x)/this.scale, (y - this.totalPanOffset.y)/this.scale, content, width, height, this.socket, this.roomId);
 
             if (canvasContainer!.contains(textarea!) && textarea !== null) {
                 // Remove all event listeners to prevent memory leaks
@@ -451,11 +447,10 @@ private handleText(e: MouseEvent) {
           break;
         case "hand":
           this.panEnd = {x: e.clientX, y: e.clientY};
-          this.currentPanOffset = calculatePanOffset(this.panStart!, this.panEnd!)!;
-          this.ctx.translate(this.currentPanOffset.x, this.currentPanOffset.y);
+          let currentPanOffset = calculatePanOffset(this.panStart!, this.panEnd!)!;
           this.totalPanOffset = {
-            x: this.currentPanOffset.x + this.totalPanOffset.x,
-            y: this.currentPanOffset.y + this.totalPanOffset.y    
+            x: currentPanOffset.x + this.totalPanOffset.x,
+            y: currentPanOffset.y + this.totalPanOffset.y    
           }
           this.panStart = this.panEnd;
           break;
