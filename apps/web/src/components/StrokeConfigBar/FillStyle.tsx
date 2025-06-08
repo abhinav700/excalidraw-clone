@@ -1,17 +1,17 @@
-import { DrawManager } from '@/lib/engine/DrawManager';
 import React, { useState } from 'react'
 import { colors } from './StrokeConfigBar';
+import { DrawManager } from '@/lib/engine/DrawManager';
 
-type StrokeStyleProps = {
+type FillStyleProps = {
   canvasManager: DrawManager;
 }
 
-const StrokeStyle = ({canvasManager}: StrokeStyleProps) => {
-  const [currentColor, setCurrentColor] = useState('#000000')
+const FillStyle = ({canvasManager}: FillStyleProps) => {
+  const [currentColor, setCurrentColor] = useState('#FFFFFF')
   const setColorHandler = (color: string) => {
     try{
-      canvasManager.setStrokeStyle(color);
-      setCurrentColor(canvasManager.getStrokeStyle());
+      canvasManager.setFillStyle(color);
+      setCurrentColor(canvasManager.getFillStyle());
       return;
     } catch(err){
       console.log(err);
@@ -21,7 +21,7 @@ const StrokeStyle = ({canvasManager}: StrokeStyleProps) => {
     return;
   return (
     <>
-      <p>Stroke Color</p>
+      <p className='mt-5'>Background Color</p>
       <div className='flex flex-wrap items-center justify-between mt-1'>
         {
           colors.map((color: string) => {
@@ -39,4 +39,4 @@ const StrokeStyle = ({canvasManager}: StrokeStyleProps) => {
   )
 }
 
-export default StrokeStyle
+export default FillStyle; 

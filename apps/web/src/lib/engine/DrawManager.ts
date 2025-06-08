@@ -28,7 +28,7 @@ export class DrawManager {
   private isCtrlMetaActive: boolean;
   private canvasCenter: Coordinates;
   private strokeStyle: string;
-
+  private fillStyle:string;
   private scale: number;
 
   constructor(
@@ -48,7 +48,7 @@ export class DrawManager {
     this.isDrawing = false;
     this.existingShapes = existingShapes;
     this.strokeStyle = "#000000";
-    this.ctx.fillStyle="white";
+    this.fillStyle="#FFFFFF"
     this.fontSize = 24;
     this.ctx.font = `${this.fontSize}px Aerial`;
     this.ctx.lineWidth = 2;
@@ -106,15 +106,7 @@ export class DrawManager {
     };
   }
 
-  public getStrokeStyle = () => {
-    try{
-      return this.strokeStyle
-    } catch(err){
-      console.log(err);
-    }
-  }
-
-  public drawExistingShapes() {
+   public drawExistingShapes() {
     
     this.ctx.setTransform(this.scale, 0, 0, this.scale, this.totalPanOffset.x, this.totalPanOffset.y);
     this.ctx.clearRect(-this.totalPanOffset.x/this.scale, -this.totalPanOffset.y/this.scale, this.canvas.width / this.scale, this.canvas.height/ this.scale);
@@ -122,13 +114,21 @@ export class DrawManager {
     this.existingShapes.map(async (item: ExistingShape) => {
       const message = await JSON.parse(item.message);
       const shape = message.shape;
-      const strokeConfiguration = message.strokeConfiguration;
+      const strokeConfiguration: StrokeConfiguration = message.strokeConfiguration;
 
-      const {strokeStyle} = strokeConfiguration
+      const {strokeStyle, fillStyle} = strokeConfiguration
       this.ctx.strokeStyle = strokeStyle
+      this.ctx.fillStyle = fillStyle 
 
       if (shape.type == "rectangle") {
         this.ctx.strokeRect(
+          shape.startX,
+          shape.startY,
+          shape.width,
+          shape.height
+        );
+
+        this.ctx.fillRect(
           shape.startX,
           shape.startY,
           shape.width,
@@ -145,6 +145,7 @@ export class DrawManager {
           2 * Math.PI
         );
         this.ctx.stroke();
+        this.ctx.fill();
       } else if (shape.type == "pencil") {
         shape.lines.map((line: LineSegment) => {
           constructLine(
@@ -186,10 +187,19 @@ export class DrawManager {
     });
   }
 
+  public getStrokeStyle = () => {
+      try{
+        return this.strokeStyle
+      }
+      catch(err){
+        console.log(err);
+        return "#000000"
+      }
+  }
+
   public setStrokeStyle(color: string){
-    console.log
-    this.strokeStyle = color;
     try{
+      this.strokeStyle = color;
       return;
     }
     catch(err){
@@ -197,6 +207,25 @@ export class DrawManager {
     }
   }
 
+  public getFillStyle = () => {
+      try{
+        return this.fillStyle
+      }
+      catch(err){
+        console.log(err);
+        return "#FFFFFF"
+      }
+  }
+
+  public setFillStyle(color: string){
+    try{
+      this.fillStyle = color;
+      return;
+    }
+    catch(err){
+      console.log(err);
+    }
+  }
 
   public setSelectedTool(tool: Tool) {
     this.selectedTool = tool;
@@ -415,10 +444,18 @@ private handleText(e: MouseEvent) {
       this.ctx.clearRect(-this.totalPanOffset.x/ this.scale, -this.totalPanOffset.y/this.scale, this.canvas.width/ this.scale, this.canvas.height/this.scale);
 
       this.drawExistingShapes();
-      this.ctx.strokeStyle = this.strokeStyle
+      this.ctx.strokeStyle = this.strokeStyle;
+      this.ctx.fillStyle = this.fillStyle;
+
       switch (this.selectedTool) {
         case "rectangle":
           this.ctx.strokeRect(
+            this.startX,
+            this.startY,
+            endX - this.startX,
+            endY - this.startY
+          );
+          this.ctx.fillRect(
             this.startX,
             this.startY,
             endX - this.startX,
@@ -434,6 +471,7 @@ private handleText(e: MouseEvent) {
           this.ctx.beginPath();
           this.ctx.arc(this.startX, this.startY, radius, 0, 2 * Math.PI); // Correct center and radius usage
           this.ctx.stroke();
+          this.ctx.fill();
           break;
 
         case "pencil":
@@ -508,7 +546,8 @@ private handleText(e: MouseEvent) {
       let shape: Shape | null;
     
       let strokeConfiguration : StrokeConfiguration = {
-        strokeStyle: this.strokeStyle
+        strokeStyle: this.strokeStyle,
+        fillStyle: this.fillStyle
       }
     
       switch (this.selectedTool) {

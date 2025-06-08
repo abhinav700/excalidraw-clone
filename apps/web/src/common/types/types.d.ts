@@ -59,4 +59,5 @@ export type ExistingShape = {
 
 export type StrokeConfiguration={
   strokeStyle: string;
+  fillStyle: string;
 }
