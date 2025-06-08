@@ -4,7 +4,7 @@ import React,
 import DrawingToolbar from "./DrawingToolbar";
 import { DrawManager } from "@/lib/engine/DrawManager";
 import { ExistingShape } from "@/common/types/types";
-import StrokeConfigBar from "./StrokeConfigBar/StrokeConfigBar";
+import DrawStyleConfigBar from "./DrawStyleConfigBar/DrawStyleConfigBar";
 
 export type StartCoordinates = {
   startX: number;
@@ -43,7 +43,7 @@ const DrawingCanvas = ({socket, existingShapes, roomId} : DrawingCanvasProps) =>
 
   
    return   <div className="w-screen h-screen m-0 p-0 overflow-hidden text-black" id="canvas-container">
-    <StrokeConfigBar canvasManager={canvasManager!}/>
+    <DrawStyleConfigBar canvasManager={canvasManager!}/>
    {canvasManager && <DrawingToolbar canvasManager={canvasManager!}/>}
       <canvas ref={canvasRef} 
           height={windowInnerHeight!}

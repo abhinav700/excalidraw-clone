@@ -1,6 +1,6 @@
 import { DrawManager } from '@/lib/engine/DrawManager';
 import React, { useState } from 'react'
-import { colors } from './StrokeConfigBar';
+import { colors } from './DrawStyleConfigBar';
 
 type StrokeStyleProps = {
   canvasManager: DrawManager;

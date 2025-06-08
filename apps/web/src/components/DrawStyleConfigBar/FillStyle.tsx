@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { colors } from './StrokeConfigBar';
+import { colors } from './DrawStyleConfigBar';
 import { DrawManager } from '@/lib/engine/DrawManager';
 
 type FillStyleProps = {

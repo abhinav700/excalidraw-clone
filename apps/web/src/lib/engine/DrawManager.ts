@@ -1,4 +1,5 @@
-import { Tool, Shape, ExistingShape, LineSegment, Coordinates, StrokeConfiguration } from "@/common/types/types";
+import { Tool, Shape, ExistingShape, LineSegment, Coordinates, StrokeConfiguration, StrokeWidthValues } from "@/common/types/types";
+
 import triggerEraseEvent from "@/lib/utils/triggerEraseEvent";
 import { CHAT, ERASE_SHAPE} from "@repo/common/constants";
 import constructLine from "../utils/constructLine";
@@ -30,6 +31,7 @@ export class DrawManager {
   private strokeStyle: string;
   private fillStyle:string;
   private scale: number;
+  private strokeWidth: StrokeWidthValues;
 
   constructor(
     canvas: HTMLCanvasElement,
@@ -62,6 +64,7 @@ export class DrawManager {
     this.totalPanOffset = {x: 0, y: 3};
     this.isCtrlMetaActive = false;
     this.canvasCenter = {x: this.canvas.width/2, y: this.canvas.height / 2};
+    this.strokeWidth = "2";
     this.drawExistingShapes();
     this.initSocketHandlers();
     this.canvas.addEventListener("mousedown", this.mouseDownHandler);
@@ -97,7 +100,7 @@ export class DrawManager {
             );
             this.drawExistingShapes();
             break;
-          defau000000lt:
+          default:
             break;
         }
       } catch (err) {
@@ -111,14 +114,15 @@ export class DrawManager {
     this.ctx.setTransform(this.scale, 0, 0, this.scale, this.totalPanOffset.x, this.totalPanOffset.y);
     this.ctx.clearRect(-this.totalPanOffset.x/this.scale, -this.totalPanOffset.y/this.scale, this.canvas.width / this.scale, this.canvas.height/ this.scale);
  
-    this.existingShapes.map(async (item: ExistingShape) => {
-      const message = await JSON.parse(item.message);
+    this.existingShapes.map((item: ExistingShape) => {
+      const message = JSON.parse(item.message);
       const shape = message.shape;
       const strokeConfiguration: StrokeConfiguration = message.strokeConfiguration;
 
-      const {strokeStyle, fillStyle} = strokeConfiguration
-      this.ctx.strokeStyle = strokeStyle
-      this.ctx.fillStyle = fillStyle 
+      const {strokeStyle, fillStyle, strokeWidth} = strokeConfiguration;
+      this.ctx.strokeStyle = strokeStyle;
+      this.ctx.fillStyle = fillStyle;
+      this.ctx.lineWidth = parseInt(strokeWidth);
 
       if (shape.type == "rectangle") {
         this.ctx.strokeRect(
@@ -221,6 +225,25 @@ export class DrawManager {
     try{
       this.fillStyle = color;
       return;
+    }
+    catch(err){
+      console.log(err);
+    }
+  }
+
+  public getStrokeWidth(Width: StrokeWidthValues){
+    try{
+      return this.strokeWidth;
+    }
+    catch(err){
+      console.log(err);
+      return "2";
+    }
+  }
+
+  public setStrokeWidth(width: StrokeWidthValues){
+    try{
+      this.strokeWidth = width;
     }
     catch(err){
       console.log(err);
@@ -444,8 +467,10 @@ private handleText(e: MouseEvent) {
       this.ctx.clearRect(-this.totalPanOffset.x/ this.scale, -this.totalPanOffset.y/this.scale, this.canvas.width/ this.scale, this.canvas.height/this.scale);
 
       this.drawExistingShapes();
+      
       this.ctx.strokeStyle = this.strokeStyle;
       this.ctx.fillStyle = this.fillStyle;
+      this.ctx.lineWidth = parseInt(this.strokeWidth);
 
       switch (this.selectedTool) {
         case "rectangle":
@@ -547,7 +572,8 @@ private handleText(e: MouseEvent) {
     
       let strokeConfiguration : StrokeConfiguration = {
         strokeStyle: this.strokeStyle,
-        fillStyle: this.fillStyle
+        fillStyle: this.fillStyle,
+        strokeWidth: this.strokeWidth
       }
     
       switch (this.selectedTool) {
