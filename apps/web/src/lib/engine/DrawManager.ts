@@ -1,4 +1,4 @@
-import { Tool, Shape, ExistingShape, LineSegment, Coordinates } from "@/common/types/types";
+import { Tool, Shape, ExistingShape, LineSegment, Coordinates, StrokeConfiguration } from "@/common/types/types";
 import triggerEraseEvent from "@/lib/utils/triggerEraseEvent";
 import { CHAT, ERASE_SHAPE} from "@repo/common/constants";
 import constructLine from "../utils/constructLine";
@@ -27,7 +27,10 @@ export class DrawManager {
   private isPanning: boolean;
   private isCtrlMetaActive: boolean;
   private canvasCenter: Coordinates;
+  private strokeStyle: string;
+
   private scale: number;
+
   constructor(
     canvas: HTMLCanvasElement,
     socket: WebSocket,
@@ -44,7 +47,7 @@ export class DrawManager {
     this.startY = 0;
     this.isDrawing = false;
     this.existingShapes = existingShapes;
-    this.ctx.strokeStyle = "red";
+    this.strokeStyle = "#000000";
     this.ctx.fillStyle="white";
     this.fontSize = 24;
     this.ctx.font = `${this.fontSize}px Aerial`;
@@ -94,7 +97,7 @@ export class DrawManager {
             );
             this.drawExistingShapes();
             break;
-          default:
+          defau000000lt:
             break;
         }
       } catch (err) {
@@ -103,16 +106,28 @@ export class DrawManager {
     };
   }
 
+  public getStrokeStyle = () => {
+    try{
+      return this.strokeStyle
+    } catch(err){
+      console.log(err);
+    }
+  }
+
   public drawExistingShapes() {
+    
     this.ctx.setTransform(this.scale, 0, 0, this.scale, this.totalPanOffset.x, this.totalPanOffset.y);
     this.ctx.clearRect(-this.totalPanOffset.x/this.scale, -this.totalPanOffset.y/this.scale, this.canvas.width / this.scale, this.canvas.height/ this.scale);
-    this.ctx.fillStyle="red";
+ 
     this.existingShapes.map(async (item: ExistingShape) => {
       const message = await JSON.parse(item.message);
       const shape = message.shape;
+      const strokeConfiguration = message.strokeConfiguration;
+
+      const {strokeStyle} = strokeConfiguration
+      this.ctx.strokeStyle = strokeStyle
+
       if (shape.type == "rectangle") {
-        console.log(this.scale);
-        console.log(this.startX, this.startY)
         this.ctx.strokeRect(
           shape.startX,
           shape.startY,
@@ -167,9 +182,21 @@ export class DrawManager {
           this.ctx.fillText(lines[i], lineX ,lineY, shape.width);
         }
         
-      }
+        }
     });
   }
+
+  public setStrokeStyle(color: string){
+    console.log
+    this.strokeStyle = color;
+    try{
+      return;
+    }
+    catch(err){
+      console.log(err);
+    }
+  }
+
 
   public setSelectedTool(tool: Tool) {
     this.selectedTool = tool;
@@ -190,10 +217,12 @@ export class DrawManager {
  
   // TODO: replace with React.MouseEvent<HtmlCanvasElement>
   private mouseDownHandler = async (e: MouseEvent) => {
+
     if (this.selectedTool == "selection") return;
     this.isDrawing = true;
     this.startX = (e.clientX - this.totalPanOffset.x)/this.scale;
     this.startY = (e.clientY - this.totalPanOffset.y)/this.scale;
+
     if(this.selectedTool == 'hand'){
       this.panStart = {x: e.clientX , y: e.clientY};
       this.isPanning = true;
@@ -386,7 +415,7 @@ private handleText(e: MouseEvent) {
       this.ctx.clearRect(-this.totalPanOffset.x/ this.scale, -this.totalPanOffset.y/this.scale, this.canvas.width/ this.scale, this.canvas.height/this.scale);
 
       this.drawExistingShapes();
-
+      this.ctx.strokeStyle = this.strokeStyle
       switch (this.selectedTool) {
         case "rectangle":
           this.ctx.strokeRect(
@@ -475,8 +504,12 @@ private handleText(e: MouseEvent) {
 
       const width: number = endX - this.startX;
       const height: number = endY - this.startY;
+     
       let shape: Shape | null;
-      
+    
+      let strokeConfiguration : StrokeConfiguration = {
+        strokeStyle: this.strokeStyle
+      }
     
       switch (this.selectedTool) {
         case "rectangle":
@@ -541,6 +574,7 @@ private handleText(e: MouseEvent) {
           type: CHAT,
           message: JSON.stringify({
             shape,
+            strokeConfiguration
           }),
           roomId: this.roomId,
         })

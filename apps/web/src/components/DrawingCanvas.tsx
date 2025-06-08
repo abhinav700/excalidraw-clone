@@ -4,6 +4,7 @@ import React,
 import DrawingToolbar from "./DrawingToolbar";
 import { DrawManager } from "@/lib/engine/DrawManager";
 import { ExistingShape } from "@/common/types/types";
+import StrokeConfigBar from "./StrokeConfigBar/StrokeConfigBar";
 
 export type StartCoordinates = {
   startX: number;
@@ -18,10 +19,7 @@ type DrawingCanvasProps = {
 }
 
 const DrawingCanvas = ({socket, existingShapes, roomId} : DrawingCanvasProps) => {
-//  console.log("drawing canvas rerendered");
-//  console.log(existingShapes);
  const canvasRef = useRef<HTMLCanvasElement>(null);
- const [canvasContext, setCanvasContext] = useState<CanvasRenderingContext2D | null>(null);
  const [windowInnerHeight, setWindowInnerHeight] = useState<number | null>(null);
  const [windowInnerWidth , setWindowInnerWidth]  = useState<number | null>(null); 
  const [canvasManager, setCanvasManager] = useState<DrawManager | null>(null);
@@ -34,7 +32,6 @@ const DrawingCanvas = ({socket, existingShapes, roomId} : DrawingCanvasProps) =>
   useEffect(() => {
     if (!canvasRef.current || !socket) return;
     
-    // console.log("inside drawind canvas: ",socket)
     const canvasManagerObj = new DrawManager(canvasRef.current, socket, roomId, existingShapes);
     setCanvasManager(canvasManagerObj);
 
@@ -46,6 +43,7 @@ const DrawingCanvas = ({socket, existingShapes, roomId} : DrawingCanvasProps) =>
 
   
    return   <div className="w-screen h-screen m-0 p-0 overflow-hidden text-black" id="canvas-container">
+    <StrokeConfigBar canvasManager={canvasManager!}/>
    {canvasManager && <DrawingToolbar canvasManager={canvasManager!}/>}
       <canvas ref={canvasRef} 
           height={windowInnerHeight!}
