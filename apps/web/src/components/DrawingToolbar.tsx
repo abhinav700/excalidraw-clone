@@ -1,20 +1,22 @@
-import { Tool } from "@/common/types/types";
+import { CanvasState, Tool } from "@/common/types/types";
 import { DrawManager } from "@/lib/engine/DrawManager";
 import { ArrowUpRight, Circle, Eraser, Hand, Minus, MousePointer, Pencil, RectangleHorizontal, WholeWordIcon } from "lucide-react";
 import { SetStateAction, useEffect, useState } from "react";
 
 type DrawingToolbarProps = {
-  canvasManager: DrawManager
+  canvasManager: DrawManager;
+  canvasState: CanvasState
 }
 
-const DrawingToolbar = ({canvasManager}: DrawingToolbarProps) => {
-  const [tool, setTool]= useState<Tool>(canvasManager.selectedTool);
+const DrawingToolbar = ({canvasManager, canvasState}: DrawingToolbarProps) => {
+  const [tool, setTool]= useState<Tool>(canvasState.selectedTool);
+  console.log("canvas State selected tool: ", canvasState.selectedTool);
+  console.log("canvas manager selected tool: ", canvasManager.selectedTool);
   
     useEffect(() => {
-      canvasManager.selectedTool = tool;
+      canvasManager.setSelectedTool(tool)
     }, [tool])
  
-  
     return <div className="flex  absolute top-[5%] rounded-lg left-[40%] py-0 bg-slate-800  text-white items-center justify-center">
     <ToolButton toolName="selection" setTool={setTool} tool={tool}>
       <MousePointer/>

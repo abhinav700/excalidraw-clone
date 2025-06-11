@@ -3,7 +3,7 @@ import React,
  { useEffect, useRef, useState } from "react";
 import DrawingToolbar from "./DrawingToolbar";
 import { DrawManager } from "@/lib/engine/DrawManager";
-import { ExistingShape } from "@/common/types/types";
+import { CanvasState, ExistingShape } from "@/common/types/types";
 import DrawStyleConfigBar from "./DrawStyleConfigBar/DrawStyleConfigBar";
 
 export type StartCoordinates = {
@@ -23,6 +23,17 @@ const DrawingCanvas = ({socket, existingShapes, roomId} : DrawingCanvasProps) =>
  const [windowInnerHeight, setWindowInnerHeight] = useState<number | null>(null);
  const [windowInnerWidth , setWindowInnerWidth]  = useState<number | null>(null); 
  const [canvasManager, setCanvasManager] = useState<DrawManager | null>(null);
+
+ 
+ const [canvasState, setCanvasState] = useState<CanvasState>({
+   strokeStyle: "#000000",
+   strokeWidth: "2",
+   fillStyle: "#ffffff",
+   selectedTool: "selection",
+   scale: 1,
+   totalPanOffset: {x: 0, y: 0}
+  })
+  
  useEffect(() => {
      setWindowInnerHeight(window.innerHeight);
      setWindowInnerWidth(window.innerWidth);
@@ -32,23 +43,24 @@ const DrawingCanvas = ({socket, existingShapes, roomId} : DrawingCanvasProps) =>
   useEffect(() => {
     if (!canvasRef.current || !socket) return;
     
-    const canvasManagerObj = new DrawManager(canvasRef.current, socket, roomId, existingShapes);
+    const canvasManagerObj = new DrawManager(canvasRef.current, socket, roomId, existingShapes, canvasState
+    ,setCanvasState);
     setCanvasManager(canvasManagerObj);
 
     return (() =>{
       canvasManagerObj.destroy();
     })
-  }, [canvasRef.current, socket, roomId, existingShapes]);
+  }, [canvasRef.current, socket, roomId, existingShapes, canvasState, setCanvasState]);
 
 
   
    return   <div className="w-screen h-screen m-0 p-0 overflow-hidden text-black" id="canvas-container">
-    <DrawStyleConfigBar canvasManager={canvasManager!}/>
-   {canvasManager && <DrawingToolbar canvasManager={canvasManager!}/>}
+    <DrawStyleConfigBar canvasState={canvasState} canvasManager={canvasManager!}/>
+   {canvasManager && <DrawingToolbar canvasManager={canvasManager!} canvasState={canvasState}/>}
       <canvas ref={canvasRef} 
           height={windowInnerHeight!}
-            width={windowInnerWidth!}
-             className="bg-white m-0"/>
+          width={windowInnerWidth!}
+          className="bg-white m-0"/>
         
     </div>
 }

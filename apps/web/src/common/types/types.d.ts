@@ -64,3 +64,12 @@ export type StrokeConfiguration={
   fillStyle: string;
   strokeWidth: StrokeWidth;
 }
+
+export type CanvasState = {
+  strokeStyle: string;
+  fillStyle: string;
+  strokeWidth: StrokeWidthValues;
+  selectedTool: Tool;
+  totalPanOffset: Coordinates,
+  scale: number;
+}

@@ -1,12 +1,14 @@
 import React, { useState } from 'react'
 import { colors } from './DrawStyleConfigBar';
 import { DrawManager } from '@/lib/engine/DrawManager';
+import { CanvasState } from '@/common/types/types';
 
 type FillStyleProps = {
   canvasManager: DrawManager;
+  canvasState: CanvasState
 }
 
-const FillStyle = ({canvasManager}: FillStyleProps) => {
+const FillStyle = ({canvasManager, canvasState}: FillStyleProps) => {
   const [currentColor, setCurrentColor] = useState('#FFFFFF')
   const setColorHandler = (color: string) => {
     try{

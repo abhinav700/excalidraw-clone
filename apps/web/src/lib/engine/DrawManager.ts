@@ -1,4 +1,4 @@
-import { Tool, Shape, ExistingShape, LineSegment, Coordinates, StrokeConfiguration, StrokeWidthValues } from "@/common/types/types";
+import { Tool, Shape, ExistingShape, LineSegment, Coordinates, StrokeConfiguration, StrokeWidthValues, CanvasState } from "@/common/types/types";
 
 import triggerEraseEvent from "@/lib/utils/triggerEraseEvent";
 import { CHAT, ERASE_SHAPE} from "@repo/common/constants";
@@ -7,6 +7,7 @@ import constructArrow from "../utils/constructArrow";
 import sendTextToBackend from "../utils/textareaUtils/sendTextToBackend";
 import { TEXTAREA_PADDING, TEXTAREA_BORDER_SIZE } from "../constants";
 import calculatePanOffset from "../utils/calculatePanOffset";
+import { SetStateAction } from "react";
 
 export class DrawManager {
   private canvas: HTMLCanvasElement;
@@ -32,39 +33,43 @@ export class DrawManager {
   private fillStyle:string;
   private scale: number;
   private strokeWidth: StrokeWidthValues;
-
+  private setCanvasState: React.Dispatch<SetStateAction<CanvasState>>;
+  private canvasState: CanvasState;
   constructor(
     canvas: HTMLCanvasElement,
     socket: WebSocket,
     roomId: string,
-    existingShapes: ExistingShape[]
+    existingShapes: ExistingShape[],
+    canvasState: CanvasState,
+    setCanvasState: React.Dispatch<SetStateAction<CanvasState>>
   ) {
+    this.canvasState = canvasState;
     this.canvas = canvas;
     this.ctx = canvas.getContext("2d")!;
     this.roomId = roomId;
-    this.selectedTool = "selection";
+    this.selectedTool = canvasState.selectedTool;
+    console.log(this.selectedTool);
     this.socket = socket;
     this.scale = 1;
+    this.setCanvasState = setCanvasState,
     this.startX = 0;
     this.startY = 0;
     this.isDrawing = false;
     this.existingShapes = existingShapes;
-    this.strokeStyle = "#000000";
-    this.fillStyle="#FFFFFF"
+    this.strokeStyle = canvasState.strokeStyle;
+    this.fillStyle= canvasState.fillStyle;
     this.fontSize = 24;
     this.ctx.font = `${this.fontSize}px Aerial`;
-    this.ctx.lineWidth = 2;
     this.lines = [];
     this.activeTextArea = null;
     this.activeTextAreaPosition = null;
-    this.canvasCenter = {x: this.canvas.width / 2, y: this.canvas.height / 2};
     this.panStart = null;
     this.panEnd = null;
     this.isPanning = false;
-    this.totalPanOffset = {x: 0, y: 3};
+    this.totalPanOffset = canvasState.totalPanOffset;
     this.isCtrlMetaActive = false;
     this.canvasCenter = {x: this.canvas.width/2, y: this.canvas.height / 2};
-    this.strokeWidth = "2";
+    this.strokeWidth = canvasState.strokeWidth;
     this.drawExistingShapes();
     this.initSocketHandlers();
     this.canvas.addEventListener("mousedown", this.mouseDownHandler);
@@ -203,7 +208,7 @@ export class DrawManager {
 
   public setStrokeStyle(color: string){
     try{
-      this.strokeStyle = color;
+      this.setCanvasState({...this.canvasState, strokeStyle: color});
       return;
     }
     catch(err){
@@ -221,9 +226,9 @@ export class DrawManager {
       }
   }
 
-  public setFillStyle(color: string){
+  public setFillStyle(fillStyle: string){
     try{
-      this.fillStyle = color;
+      this.setCanvasState({...this.canvasState, fillStyle});
       return;
     }
     catch(err){
@@ -241,27 +246,36 @@ export class DrawManager {
     }
   }
 
-  public setStrokeWidth(width: StrokeWidthValues){
+  public setStrokeWidth(strokeWidth: StrokeWidthValues){
     try{
-      this.strokeWidth = width;
+      this.setCanvasState({...this.canvasState, strokeWidth});
     }
     catch(err){
       console.log(err);
     }
   }
 
-  public setSelectedTool(tool: Tool) {
-    this.selectedTool = tool;
+  public setSelectedTool(selectedTool: Tool) {
+    try{
+      this.setCanvasState({...this.canvasState, selectedTool});
+    } catch(err){
+      console.log(err);
+    }
   }
 
   private mouseZoomHandler = (e: WheelEvent) => {
+    let newScale: number;
     if(e.ctrlKey || e.metaKey){
       e.preventDefault();
       if(e.deltaY > 0)
-        this.scale = Math.max(0.3, this.scale - 0.1);
+        newScale = Math.max(0.3, this.scale - 0.1);
+
       else
-        this.scale = Math.min(3, this.scale + 0.1);
+        newScale = Math.min(3, this.scale + 0.1);
       
+        this.scale = newScale;
+        this.setCanvasState({...this.canvasState, scale : newScale})
+        
         this.drawExistingShapes();
     }
   }
@@ -540,10 +554,12 @@ private handleText(e: MouseEvent) {
         case "hand":
           this.panEnd = {x: e.clientX, y: e.clientY};
           let currentPanOffset = calculatePanOffset(this.panStart!, this.panEnd!)!;
-          this.totalPanOffset = {
+          
+          this.setCanvasState({...this.canvasState, totalPanOffset : {
             x: currentPanOffset.x + this.totalPanOffset.x,
             y: currentPanOffset.y + this.totalPanOffset.y    
-          }
+          }})
+          
           this.panStart = this.panEnd;
           break;
         default:
