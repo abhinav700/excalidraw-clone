@@ -31,7 +31,10 @@ const DrawingCanvas = ({socket, existingShapes, roomId} : DrawingCanvasProps) =>
    fillStyle: "#ffffff",
    selectedTool: "selection",
    scale: 1,
-   totalPanOffset: {x: 0, y: 0}
+   totalPanOffset: {x: 0, y: 0},
+   fontFamily: 'Excalifont',
+   fontSize: 'medium',
+   textAlignment: 'center',
   })
   
  useEffect(() => {

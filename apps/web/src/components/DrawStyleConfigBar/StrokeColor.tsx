@@ -1,7 +1,7 @@
 import { DrawManager } from '@/lib/engine/DrawManager';
 import React, { useState } from 'react'
-import { colors } from './DrawStyleConfigBar';
 import { CanvasState } from '@/common/types/types';
+import { colors } from '@/common/constants';
 
 type StrokeStyleProps = {
   canvasManager: DrawManager;
@@ -14,6 +14,7 @@ const StrokeStyle = ({canvasManager, canvasState}: StrokeStyleProps) => {
   const setColorHandler = (color: string) => {
     try{
       canvasManager.setStrokeStyle(color);
+      setCurrentColor(color)
       return;
     } catch(err){
       console.log(err);

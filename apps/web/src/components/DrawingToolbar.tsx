@@ -10,8 +10,6 @@ type DrawingToolbarProps = {
 
 const DrawingToolbar = ({canvasManager, canvasState}: DrawingToolbarProps) => {
   const [tool, setTool]= useState<Tool>(canvasState.selectedTool);
-  console.log("canvas State selected tool: ", canvasState.selectedTool);
-  console.log("canvas manager selected tool: ", canvasManager.selectedTool);
   
     useEffect(() => {
       canvasManager.setSelectedTool(tool)

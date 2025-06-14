@@ -1,4 +1,4 @@
-import { Tool, Shape, ExistingShape, LineSegment, Coordinates, StrokeConfiguration, StrokeWidthValues, CanvasState } from "@/common/types/types";
+import { Tool, Shape, ExistingShape, LineSegment, Coordinates, StrokeConfiguration, StrokeWidthValues, CanvasState, FontSize, FontFamily, TextAlignment, FontConfiguration } from "@/common/types/types";
 
 import triggerEraseEvent from "@/lib/utils/triggerEraseEvent";
 import { CHAT, ERASE_SHAPE} from "@repo/common/constants";
@@ -8,13 +8,14 @@ import sendTextToBackend from "../utils/textareaUtils/sendTextToBackend";
 import { TEXTAREA_PADDING, TEXTAREA_BORDER_SIZE } from "../constants";
 import calculatePanOffset from "../utils/calculatePanOffset";
 import { SetStateAction } from "react";
+import { fontSizeMapping } from "@/common/constants";
 
 export class DrawManager {
   private canvas: HTMLCanvasElement;
   private ctx: CanvasRenderingContext2D;
   private startX: number;
   private startY: number;
-  public selectedTool: Tool;
+  private selectedTool: Tool;
   private socket: WebSocket;
   private roomId: string;
   private existingShapes: ExistingShape[];
@@ -22,7 +23,6 @@ export class DrawManager {
   private lines: LineSegment[];
   private activeTextArea: HTMLTextAreaElement | null;
   private activeTextAreaPosition: Coordinates | null;
-  private fontSize: number;
   private panStart: Coordinates | null;
   private panEnd: Coordinates | null;
   private totalPanOffset: Coordinates;
@@ -35,6 +35,10 @@ export class DrawManager {
   private strokeWidth: StrokeWidthValues;
   private setCanvasState: React.Dispatch<SetStateAction<CanvasState>>;
   private canvasState: CanvasState;
+  private fontSize: FontSize;
+  private fontFamily: FontFamily;
+  private textAllignment: TextAlignment;
+
   constructor(
     canvas: HTMLCanvasElement,
     socket: WebSocket,
@@ -46,37 +50,45 @@ export class DrawManager {
     this.canvasState = canvasState;
     this.canvas = canvas;
     this.ctx = canvas.getContext("2d")!;
-    this.roomId = roomId;
-    this.selectedTool = canvasState.selectedTool;
-    console.log(this.selectedTool);
-    this.socket = socket;
-    this.scale = 1;
-    this.setCanvasState = setCanvasState,
-    this.startX = 0;
-    this.startY = 0;
-    this.isDrawing = false;
-    this.existingShapes = existingShapes;
+    
     this.strokeStyle = canvasState.strokeStyle;
     this.fillStyle= canvasState.fillStyle;
-    this.fontSize = 24;
+    this.strokeWidth = canvasState.strokeWidth;
+    
+    this.fontSize= this.canvasState.fontSize;
+    this.fontFamily = this.canvasState.fontFamily;
+    this.textAllignment = this.canvasState.textAlignment;
     this.ctx.font = `${this.fontSize}px Aerial`;
+    
+    this.existingShapes = existingShapes;
+    this.socket = socket;
+    this.roomId = roomId;
+    this.selectedTool = canvasState.selectedTool;
+    this.setCanvasState = setCanvasState,
+    
+    this.startX = 0;
+    this.startY = 0;
+    this.panStart = null;
+    this.panEnd = null;
+    this.canvasCenter = {x: this.canvas.width/2, y: this.canvas.height / 2};
+    this.totalPanOffset = canvasState.totalPanOffset;
+    
+    this.isDrawing = false;
+    this.isPanning = false;
+    this.isCtrlMetaActive = false;
+    
+    this.scale = 1;
     this.lines = [];
     this.activeTextArea = null;
     this.activeTextAreaPosition = null;
-    this.panStart = null;
-    this.panEnd = null;
-    this.isPanning = false;
-    this.totalPanOffset = canvasState.totalPanOffset;
-    this.isCtrlMetaActive = false;
-    this.canvasCenter = {x: this.canvas.width/2, y: this.canvas.height / 2};
-    this.strokeWidth = canvasState.strokeWidth;
+    
     this.drawExistingShapes();
     this.initSocketHandlers();
+
     this.canvas.addEventListener("mousedown", this.mouseDownHandler);
     this.canvas.addEventListener("mousemove", this.mouseMoveHandler);
     this.canvas.addEventListener("mouseup", this.mouseUpHandler);
     this.canvas.addEventListener("wheel", this.mouseZoomHandler);
-    this.canvas.focus();
   }
   
   destroy() {
@@ -85,117 +97,7 @@ export class DrawManager {
     this.canvas.removeEventListener("mouseup", this.mouseUpHandler);
     this.canvas.removeEventListener("wheel", this.mouseZoomHandler);
   }
-
-  public initSocketHandlers() {
-    this.socket.onmessage = async (event) => {
-      try {
-        const parsedData = await JSON.parse(event.data);
-        switch (parsedData.type) {
-          case CHAT:
-            this.existingShapes.push({
-              id: parsedData.id,
-              message: parsedData.message,
-            });
-            this.drawExistingShapes();
-            break;
-
-          case ERASE_SHAPE:
-            this.existingShapes = this.existingShapes.filter(
-              (shape) => shape.id != parsedData.id
-            );
-            this.drawExistingShapes();
-            break;
-          default:
-            break;
-        }
-      } catch (err) {
-        console.log(err);
-      }
-    };
-  }
-
-   public drawExistingShapes() {
-    
-    this.ctx.setTransform(this.scale, 0, 0, this.scale, this.totalPanOffset.x, this.totalPanOffset.y);
-    this.ctx.clearRect(-this.totalPanOffset.x/this.scale, -this.totalPanOffset.y/this.scale, this.canvas.width / this.scale, this.canvas.height/ this.scale);
- 
-    this.existingShapes.map((item: ExistingShape) => {
-      const message = JSON.parse(item.message);
-      const shape = message.shape;
-      const strokeConfiguration: StrokeConfiguration = message.strokeConfiguration;
-
-      const {strokeStyle, fillStyle, strokeWidth} = strokeConfiguration;
-      this.ctx.strokeStyle = strokeStyle;
-      this.ctx.fillStyle = fillStyle;
-      this.ctx.lineWidth = parseInt(strokeWidth);
-
-      if (shape.type == "rectangle") {
-        this.ctx.strokeRect(
-          shape.startX,
-          shape.startY,
-          shape.width,
-          shape.height
-        );
-
-        this.ctx.fillRect(
-          shape.startX,
-          shape.startY,
-          shape.width,
-          shape.height
-        );
-         
-      } else if (shape.type == "circle") {
-        this.ctx.beginPath();
-        this.ctx.arc(
-          shape.centerX,
-          shape.centerY,
-          shape.radius,
-          0,
-          2 * Math.PI
-        );
-        this.ctx.stroke();
-        this.ctx.fill();
-      } else if (shape.type == "pencil") {
-        shape.lines.map((line: LineSegment) => {
-          constructLine(
-            line.startX,
-            line.startY,
-            line.endX,
-            line.endY,
-            this.ctx
-          );
-        });
-      } else if (shape.type == "line") {
-        constructLine(
-          shape.startX,
-          shape.startY,
-          shape.endX,
-          shape.endY,
-          this.ctx
-        );
-      } else if (shape.type == "arrow") {
-        constructArrow(
-          shape.startX,
-          shape.startY,
-          shape.endX,
-          shape.endY,
-          this.ctx
-        );
-      } else if (shape.type == "text"){
-        const lines = shape.content.split('\n');
-        const initialOffset = TEXTAREA_BORDER_SIZE + TEXTAREA_PADDING;
-        this.ctx.textBaseline = "top";
-        for(let i = 0; i < lines.length; i++){
-         
-          const lineX = shape.startX + initialOffset;
-          const lineY = shape.startY + initialOffset + (i * 1.5 * this.fontSize);
-          this.ctx.fillText(lines[i], lineX ,lineY, shape.width);
-        }
-        
-        }
-    });
-  }
-
+  
   public getStrokeStyle = () => {
       try{
         return this.strokeStyle
@@ -263,6 +165,147 @@ export class DrawManager {
     }
   }
 
+  public setFontFamily(fontFamily: FontFamily){
+    try{
+      this.fontFamily = fontFamily;
+      return;
+    } catch (err){
+      console.log(err);
+    }
+  }
+
+  public getFontFamily(fontFamily: FontFamily){
+    try{
+      return this.fontFamily;
+    } catch(err){
+      console.log(err);
+    return 'Excalifont'
+    }
+  }
+
+  public initSocketHandlers() {
+    this.socket.onmessage = async (event) => {
+      try {
+        const parsedData = await JSON.parse(event.data);
+        switch (parsedData.type) {
+          case CHAT:
+            this.existingShapes.push({
+              id: parsedData.id,
+              message: parsedData.message,
+            });
+            this.drawExistingShapes();
+            break;
+
+          case ERASE_SHAPE:
+            this.existingShapes = this.existingShapes.filter(
+              (shape) => shape.id != parsedData.id
+            );
+            this.drawExistingShapes();
+            break;
+          default:
+            break;
+        }
+      } catch (err) {
+        console.log(err);
+      }
+    };
+  }
+  
+   public drawExistingShapes() {
+    
+    this.ctx.setTransform(this.scale, 0, 0, this.scale, this.totalPanOffset.x, this.totalPanOffset.y);
+    this.ctx.clearRect(-this.totalPanOffset.x/this.scale, -this.totalPanOffset.y/this.scale, this.canvas.width / this.scale, this.canvas.height/ this.scale);
+    
+    this.existingShapes.map((item: ExistingShape) => {
+      const message = JSON.parse(item.message);
+      const shape = message.shape;
+      const strokeConfiguration: StrokeConfiguration = message.strokeConfiguration;
+
+      const {strokeStyle, fillStyle, strokeWidth} = strokeConfiguration ?? {
+        strokeStyle: this.strokeStyle,
+        fillStyle: this.fillStyle,
+        strokeWidth: this.strokeWidth,
+      };
+      this.ctx.strokeStyle = strokeStyle
+      this.ctx.fillStyle = fillStyle
+      this.ctx.lineWidth = parseInt(strokeWidth);
+      
+      if (shape.type == "rectangle") {
+        this.ctx.strokeRect(
+          shape.startX,
+          shape.startY,
+          shape.width,
+          shape.height
+        );
+
+        this.ctx.fillRect(
+          shape.startX,
+          shape.startY,
+          shape.width,
+          shape.height
+        );
+         
+      } else if (shape.type == "circle") {
+        this.ctx.beginPath();
+        this.ctx.arc(
+          shape.centerX,
+          shape.centerY,
+          shape.radius,
+          0,
+          2 * Math.PI
+        );
+        this.ctx.stroke();
+        this.ctx.fill();
+      } else if (shape.type == "pencil") {
+        shape.lines.map((line: LineSegment) => {
+          constructLine(
+            line.startX,
+            line.startY,
+            line.endX,
+            line.endY,
+            this.ctx
+          );
+        });
+      } else if (shape.type == "line") {
+        constructLine(
+          shape.startX,
+          shape.startY,
+          shape.endX,
+          shape.endY,
+          this.ctx
+        );
+      } else if (shape.type == "arrow") {
+        constructArrow(
+          shape.startX,
+          shape.startY,
+          shape.endX,
+          shape.endY,
+          this.ctx
+        );
+      } else if (shape.type == "text"){
+        const lines = shape.content.split('\n');
+        const initialOffset = TEXTAREA_BORDER_SIZE + TEXTAREA_PADDING;
+        const {color, fontSize, fontFamily, textAlignment} = message.fontConfiguration;
+       
+        console.log(message.fontConfiguration);
+        
+        this.ctx.textBaseline = "top";
+        this.ctx.fillStyle = color;
+        this.ctx.font = `${fontSizeMapping[this.fontSize]}px ${fontFamily}`;
+        this.ctx.textAlign = textAlignment;
+
+        for(let i = 0; i < lines.length; i++){
+         
+          const lineX = shape.startX + initialOffset;
+          const lineY = shape.startY + initialOffset + (i * 1.5 * fontSizeMapping[this.fontSize]);
+          this.ctx.fillText(lines[i], lineX ,lineY, shape.width);
+        }
+        
+        }
+    });
+  }
+
+
   private mouseZoomHandler = (e: WheelEvent) => {
     let newScale: number;
     if(e.ctrlKey || e.metaKey){
@@ -322,6 +365,8 @@ private handleText(e: MouseEvent) {
             position: "absolute",
             left: `${x}px`,
             top: `${y}px`,
+            color: this.strokeStyle,
+            fontSize: `${fontSizeMapping[this.fontSize]}`,
             padding: `${TEXTAREA_PADDING}px`,
             minHeight: `${this.fontSize + 4}px`,
             height: `${this.fontSize + 4}px`,
@@ -329,7 +374,6 @@ private handleText(e: MouseEvent) {
             minWidth: "100px",
             border: `${TEXTAREA_BORDER_SIZE}px solid #ccc`,
             outline: "none",
-            fontSize: `${this.fontSize}px`,
             fontFamily: "Aerial",
             boxSizing: "border-box",
             resize: "none",
@@ -363,7 +407,7 @@ private handleText(e: MouseEvent) {
 
             mirrorSpan.textContent = textarea.value || " ";
             textarea.style.width = `${Math.max(mirrorSpan.offsetWidth + 4, 100)}px`; 
-            textarea.style.height = `${Math.max(textarea.scrollHeight, this.fontSize + 4)}px`;
+            textarea.style.height = `${Math.max(textarea.scrollHeight, fontSizeMapping[this.fontSize] + 4)}px`;
 
         };
 
@@ -382,20 +426,28 @@ private handleText(e: MouseEvent) {
 
             let width = textarea!.offsetWidth;
             let height = textarea!.offsetHeight;
-            sendTextToBackend((x - this.totalPanOffset.x)/this.scale, (y - this.totalPanOffset.y)/this.scale, content, width, height, this.socket, this.roomId);
+
+            const fontConfiguration: FontConfiguration = {
+              fontSize: this.fontSize,
+              fontFamily: this.fontFamily,
+              textAlignment: this.textAllignment,
+              color: this.strokeStyle
+            }  
+
+            sendTextToBackend((x - this.totalPanOffset.x)/this.scale, (y - this.totalPanOffset.y)/this.scale,
+              content, width, height, this.socket, this.roomId, fontConfiguration);
 
             if (canvasContainer!.contains(textarea!) && textarea !== null) {
-                // Remove all event listeners to prevent memory leaks
                 textarea.removeEventListener('blur', handleBlur);
                 textarea.removeEventListener('keydown', handleKeydown);
                 textarea.removeEventListener('input', handleInput);
-                textarea.remove(); // Remove textarea from DOM
+                textarea.remove(); 
             }
 
-            // Clean up the mirror span
+            
             if (mirrorSpan && document.body.contains(mirrorSpan)) {
                 document.body.removeChild(mirrorSpan);
-                mirrorSpan = null; // Nullify reference to aid garbage collection
+                mirrorSpan = null; 
             }
 
             this.activeTextArea = null;
@@ -453,10 +505,14 @@ private handleText(e: MouseEvent) {
         }, 100);
 
         // Blur handler to save changes
-        const handleBlur = () => {
-            document.removeEventListener("mousedown", handleClickOutside);
-            if (hasUnsavedChanges) {
+        const handleBlur = (e: FocusEvent) => {
+          e.preventDefault();
+          if(this.canvas.contains(e.target as Node )){
+              alert('entered canvas');
+              document.removeEventListener("mousedown", handleClickOutside);
+              if (hasUnsavedChanges) {
                 save();
+              }
             }
         };
         textarea.addEventListener("blur", handleBlur);

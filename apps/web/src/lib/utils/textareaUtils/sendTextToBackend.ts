@@ -1,8 +1,9 @@
+import { FontConfiguration } from "@/common/types/types";
 import { CHAT } from "@repo/common/constants";
 
-type SendTextToBackend = (startX: number, startY: number, content: string, width: number, height: number, socket: WebSocket, roomId: string) => void;
+type SendTextToBackend = (startX: number, startY: number, content: string, width: number, height: number, socket: WebSocket, roomId: string, fontConfiguration: FontConfiguration) => void;
 
-const sendTextToBackend: SendTextToBackend = (startX: number, startY: number, content: string, width: number, height: number, socket: WebSocket, roomId: string) => {
+const sendTextToBackend: SendTextToBackend = (startX: number, startY: number, content: string, width: number, height: number, socket: WebSocket, roomId: string, fontConfiguration: FontConfiguration) => {
   try{
     
    socket.send(
@@ -17,6 +18,7 @@ const sendTextToBackend: SendTextToBackend = (startX: number, startY: number, co
               width,
               height
             },
+            fontConfiguration
           }),
           roomId: roomId,
         })

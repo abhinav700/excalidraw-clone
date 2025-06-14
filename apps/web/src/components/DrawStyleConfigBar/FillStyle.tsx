@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
-import { colors } from './DrawStyleConfigBar';
 import { DrawManager } from '@/lib/engine/DrawManager';
 import { CanvasState } from '@/common/types/types';
+import { colors } from '@/common/constants';
 
 type FillStyleProps = {
   canvasManager: DrawManager;
@@ -13,7 +13,7 @@ const FillStyle = ({canvasManager, canvasState}: FillStyleProps) => {
   const setColorHandler = (color: string) => {
     try{
       canvasManager.setFillStyle(color);
-      setCurrentColor(canvasManager.getFillStyle());
+      setCurrentColor(color);
       return;
     } catch(err){
       console.log(err);

@@ -65,6 +65,19 @@ export type StrokeConfiguration={
   strokeWidth: StrokeWidth;
 }
 
+export type FontSize = "small" | "medium" | "large" | "very large";
+
+export type TextAlignment = "left" | "center" | "right";
+
+export type FontFamily = "Comic Shanns" | "Excalifont" | "Lilita One" | "Nunito";
+
+export type FontConfiguration={
+  color: string;
+  fontFamily: FontFamily;
+  fontSize:  FontSize;
+  textAlignment: TextAlignment;
+}
+
 export type CanvasState = {
   strokeStyle: string;
   fillStyle: string;
@@ -72,4 +85,7 @@ export type CanvasState = {
   selectedTool: Tool;
   totalPanOffset: Coordinates,
   scale: number;
+  fontFamily: FontFamily;
+  fontSize: FontSize;
+  textAlignment: TextAlignment
 }
