@@ -374,7 +374,7 @@ private handleText(e: MouseEvent) {
             minWidth: "100px",
             border: `${TEXTAREA_BORDER_SIZE}px solid #ccc`,
             outline: "none",
-            fontFamily: "Aerial",
+            fontFamily: this.fontFamily,
             boxSizing: "border-box",
             resize: "none",
             whiteSpace: "nowrap"
