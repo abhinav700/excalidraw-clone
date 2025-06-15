@@ -1,7 +1,16 @@
-import { FontFamily } from "@/common/types/types";
+import { fontSizeLetterMapping } from "@/common/constants";
+import { FontFamily, FontSize, Tool } from "@/common/types/types";
 
-const LetterIcon = ({ fontFamily }: { fontFamily: FontFamily }) => (
-  <span className="text-xl font-bold" style={{fontFamily: fontFamily}}>{fontFamily == "Lilita One" ? "H" : "A"}</span>
+type LetterIconProps = {
+  text: string;
+  textConfigType: "font fize" | "font family";
+}
+
+const LetterIcon = ({ text, textConfigType }: LetterIconProps) => (
+
+  textConfigType == "font family" 
+    ? <span className="text-xl font-bold" style={{fontFamily: text}}>{text == "Lilita One" ? "H" : "A"}</span>
+    : <span className="text-xl font-bold" style={{fontFamily: 'Comic Shanns'}}>{fontSizeLetterMapping[text as FontSize]}</span>
 );
 
 export default LetterIcon;

@@ -8,37 +8,44 @@ import sendTextToBackend from "../utils/textareaUtils/sendTextToBackend";
 import { TEXTAREA_PADDING, TEXTAREA_BORDER_SIZE } from "../constants";
 import calculatePanOffset from "../utils/calculatePanOffset";
 import { SetStateAction } from "react";
-import { fontSizeMapping } from "@/common/constants";
+import { fontSizeValueMapping } from "@/common/constants";
 
 export class DrawManager {
   private canvas: HTMLCanvasElement;
   private ctx: CanvasRenderingContext2D;
-  private startX: number;
-  private startY: number;
-  private selectedTool: Tool;
-  private socket: WebSocket;
-  private roomId: string;
+  
+  private canvasState: CanvasState;
+  private setCanvasState: React.Dispatch<SetStateAction<CanvasState>>;
   private existingShapes: ExistingShape[];
-  private isDrawing: boolean;
-  private lines: LineSegment[];
-  private activeTextArea: HTMLTextAreaElement | null;
-  private activeTextAreaPosition: Coordinates | null;
-  private panStart: Coordinates | null;
-  private panEnd: Coordinates | null;
-  private totalPanOffset: Coordinates;
-  private isPanning: boolean;
-  private isCtrlMetaActive: boolean;
-  private canvasCenter: Coordinates;
+  private setExistingShapes: React.Dispatch<SetStateAction<ExistingShape[]>>
+  
   private strokeStyle: string;
   private fillStyle:string;
-  private scale: number;
   private strokeWidth: StrokeWidthValues;
-  private setCanvasState: React.Dispatch<SetStateAction<CanvasState>>;
-  private canvasState: CanvasState;
+  
   private fontSize: FontSize;
   private fontFamily: FontFamily;
   private textAllignment: TextAlignment;
-  private setExistingShapes: React.Dispatch<SetStateAction<ExistingShape[]>>
+  
+  private socket: WebSocket;
+  private roomId: string;
+  private selectedTool: Tool;
+
+  private scale: number;
+  private startX: number;
+  private startY: number;
+  private panStart: Coordinates | null;
+  private panEnd: Coordinates | null;
+  private canvasCenter: Coordinates;
+  private totalPanOffset: Coordinates;
+
+  private isDrawing: boolean;
+  private isCtrlMetaActive: boolean;
+  private isPanning: boolean;
+  
+  private lines: LineSegment[];
+  private activeTextArea: HTMLTextAreaElement | null;
+  private activeTextAreaPosition: Coordinates | null;
   constructor(
     canvas: HTMLCanvasElement,
     socket: WebSocket,
@@ -63,12 +70,13 @@ export class DrawManager {
     this.fontSize= this.canvasState.fontSize;
     this.fontFamily = this.canvasState.fontFamily;
     this.textAllignment = this.canvasState.textAlignment;
-    this.ctx.font = `${this.fontSize}px Aerial`;
+    this.ctx.font = `${fontSizeValueMapping[this.fontSize]}px Aerial`;
     
     this.socket = socket;
     this.roomId = roomId;
     this.selectedTool = canvasState.selectedTool;
 
+    this.scale = canvasState.scale;
     this.startX = 0;
     this.startY = 0;
     this.panStart = null;
@@ -80,7 +88,6 @@ export class DrawManager {
     this.isPanning = false;
     this.isCtrlMetaActive = false;
     
-    this.scale = canvasState.scale;
     this.lines = [];
     this.activeTextArea = null;
     this.activeTextAreaPosition = null;
@@ -183,6 +190,22 @@ export class DrawManager {
     } catch(err){
       console.log(err);
     return 'Excalifont'
+    }
+  }
+
+  public setFontSize(fontSize: FontSize){
+    try{
+      this.setCanvasState({...this.canvasState, fontSize})
+    }catch(err){
+      console.log(err);
+    }
+  }
+
+  public setTextAlignment(textAlignment: TextAlignment){
+    try{
+      this.setCanvasState({...this.canvasState, textAlignment})
+    } catch(err){
+      console.log(err);
     }
   }
 
@@ -289,18 +312,19 @@ export class DrawManager {
         );
       } else if (shape.type == "text"){
         const lines = shape.content.split('\n');
-        const initialOffset = TEXTAREA_BORDER_SIZE + TEXTAREA_PADDING;
+        // const initialOffset = TEXTAREA_BORDER_SIZE + TEXTAREA_PADDING;
+        const initialOffset = TEXTAREA_PADDING;
         const {color, fontSize, fontFamily, textAlignment} = message.fontConfiguration;
        
         this.ctx.textBaseline = "top";
         this.ctx.fillStyle = color;
-        this.ctx.font = `${fontSizeMapping[this.fontSize]}px ${fontFamily}`;
+        this.ctx.font = `${fontSizeValueMapping[fontSize as FontSize]}px ${fontFamily}`;
         this.ctx.textAlign = textAlignment;
 
         for(let i = 0; i < lines.length; i++){
          
           const lineX = shape.startX + initialOffset;
-          const lineY = shape.startY + initialOffset + (i * 1.5 * fontSizeMapping[this.fontSize]);
+          const lineY = shape.startY + initialOffset + (i * 1.5 * fontSizeValueMapping[this.fontSize]);
           this.ctx.fillText(lines[i], lineX ,lineY, shape.width);
         }
         
@@ -362,7 +386,10 @@ private handleText(e: MouseEvent) {
         const canvasContainer = document.getElementById("canvas-container");
       
         let textarea: HTMLTextAreaElement | null = document.createElement("textarea");
-        const fontSizeValue = fontSizeMapping[this.fontSize];
+        const fontSizeValue = fontSizeValueMapping[this.fontSize];
+        console.log(this.fontSize);
+
+        console.log(fontSizeValue);
         Object.assign(textarea.style, {
             position: "absolute",
             left: `${x}px`,
@@ -373,7 +400,8 @@ private handleText(e: MouseEvent) {
             height: `${fontSizeValue + 4}px`,
             overflow: "hidden",
             minWidth: "100px",
-            border: `${TEXTAREA_BORDER_SIZE}px solid #ccc`,
+            textAlign:this.textAllignment,
+            // border: `${TEXTAREA_BORDER_SIZE}px solid #ccc`,
             outline: "none",
             fontFamily: this.fontFamily,
             boxSizing: "border-box",
@@ -395,7 +423,7 @@ private handleText(e: MouseEvent) {
             top: '0',
             left: '0',
             whiteSpace: "pre-wrap",
-            fontSize: `${this.fontSize}px`,
+            fontSize: `${fontSizeValueMapping[this.fontSize]}}px`,
             minWidth: "100px",
             fontFamily: textarea.style.fontFamily,
             padding: textarea.style.padding,
@@ -408,7 +436,7 @@ private handleText(e: MouseEvent) {
 
             mirrorSpan.textContent = textarea.value || " ";
             textarea.style.width = `${Math.max(mirrorSpan.offsetWidth + 4, 100)}px`; 
-            textarea.style.height = `${Math.max(textarea.scrollHeight, fontSizeMapping[this.fontSize] + 4)}px`;
+            textarea.style.height = `${Math.max(textarea.scrollHeight, fontSizeValueMapping[this.fontSize] + 4)}px`;
 
         };
 

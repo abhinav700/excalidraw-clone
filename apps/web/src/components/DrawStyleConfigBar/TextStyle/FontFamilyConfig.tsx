@@ -36,7 +36,7 @@ type FontFamilyItemProps = {
 const FontFamilyItem = ({fontFamily, setFontFamily, canvasManager, value}: FontFamilyItemProps) => {
   let Icon: ReactNode = <></>;
   if(value == 'Lilita One' || value == 'Nunito'){
-    Icon = <LetterIcon fontFamily={value}/>
+    Icon = <LetterIcon text={value} textConfigType={"font family"}/>
   }
   else{
     let IconComponent = fontFamilyIconMapping[value] 

@@ -65,9 +65,11 @@ export type StrokeConfiguration={
   strokeWidth: StrokeWidth;
 }
 
+export type TextAlignment = "left" | "center" | "right";
+
 export type FontSize = "small" | "medium" | "large" | "very large";
 
-export type TextAlignment = "left" | "center" | "right";
+export type FontSizeValues = 14 | 18 | 22 | 26;
 
 export type FontFamily = "Comic Shanns" | "Excalifont" | "Lilita One" | "Nunito";
 
