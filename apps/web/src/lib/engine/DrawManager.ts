@@ -38,18 +38,23 @@ export class DrawManager {
   private fontSize: FontSize;
   private fontFamily: FontFamily;
   private textAllignment: TextAlignment;
-
+  private setExistingShapes: React.Dispatch<SetStateAction<ExistingShape[]>>
   constructor(
     canvas: HTMLCanvasElement,
     socket: WebSocket,
     roomId: string,
     existingShapes: ExistingShape[],
+    setExistingShapes: React.Dispatch<SetStateAction<ExistingShape[]>>,
     canvasState: CanvasState,
     setCanvasState: React.Dispatch<SetStateAction<CanvasState>>
   ) {
-    this.canvasState = canvasState;
     this.canvas = canvas;
     this.ctx = canvas.getContext("2d")!;
+   
+    this.canvasState = canvasState;
+    this.setCanvasState = setCanvasState,
+    this.existingShapes = existingShapes;
+    this.setExistingShapes = setExistingShapes;
     
     this.strokeStyle = canvasState.strokeStyle;
     this.fillStyle= canvasState.fillStyle;
@@ -60,12 +65,10 @@ export class DrawManager {
     this.textAllignment = this.canvasState.textAlignment;
     this.ctx.font = `${this.fontSize}px Aerial`;
     
-    this.existingShapes = existingShapes;
     this.socket = socket;
     this.roomId = roomId;
     this.selectedTool = canvasState.selectedTool;
-    this.setCanvasState = setCanvasState,
-    
+
     this.startX = 0;
     this.startY = 0;
     this.panStart = null;
@@ -700,6 +703,8 @@ private handleText(e: MouseEvent) {
           this.isPanning = false;
           this.setCanvasState({...this.canvasState, totalPanOffset: this.totalPanOffset});
           return;
+        case "eraser":
+          this.setExistingShapes((existingShapes) => this.existingShapes);
         default:
           return;
       }

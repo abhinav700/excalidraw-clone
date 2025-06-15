@@ -1,6 +1,7 @@
 "use client"
 import React,
- { useEffect, useRef, useState } from "react";
+ { SetStateAction,
+useEffect, useRef, useState } from "react";
 import DrawingToolbar from "./DrawingToolbar";
 import { DrawManager } from "@/lib/engine/DrawManager";
 import { CanvasState, ExistingShape } from "@/common/types/types";
@@ -15,10 +16,11 @@ export type StartCoordinates = {
 type DrawingCanvasProps = {
   socket: WebSocket
   existingShapes: ExistingShape[],
+  setExistingShapes: React.Dispatch<SetStateAction<ExistingShape[]>>;
   roomId:string;
 }
 
-const DrawingCanvas = ({socket, existingShapes, roomId} : DrawingCanvasProps) => {
+const DrawingCanvas = ({socket, existingShapes, setExistingShapes, roomId} : DrawingCanvasProps) => {
  const canvasRef = useRef<HTMLCanvasElement>(null);
  const [windowInnerHeight, setWindowInnerHeight] = useState<number | null>(null);
  const [windowInnerWidth , setWindowInnerWidth]  = useState<number | null>(null); 
@@ -46,7 +48,7 @@ const DrawingCanvas = ({socket, existingShapes, roomId} : DrawingCanvasProps) =>
   useEffect(() => {
     if (!canvasRef.current || !socket) return;
     
-    const canvasManagerObj = new DrawManager(canvasRef.current, socket, roomId, existingShapes, canvasState
+    const canvasManagerObj = new DrawManager(canvasRef.current, socket, roomId, existingShapes, setExistingShapes, canvasState
     ,setCanvasState);
     setCanvasManager(canvasManagerObj);
 

@@ -23,7 +23,7 @@ const ChatRoom = async ({params}: ChatRoomProps) => {
 
   // console.log("data stored in existing shapes array: ", messages);
   return <>
-    <ChatRoomClient roomId ={roomId} existingShapes={messages}/>
+    <ChatRoomClient roomId ={roomId} messages={messages}/>
   </>
 }
 

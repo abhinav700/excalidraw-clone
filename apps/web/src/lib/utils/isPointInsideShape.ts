@@ -31,7 +31,6 @@ const isWithinRectangleBounds= (x: number, y: number, shape: Shape) => {
         throw new Error("Invalid error");
 
       let {startX, startY, height, width} = shape;
-      console.log("inside function, ", shape)
       let horizontallyInside: boolean = false , verticallyInside : boolean = false;
       
       if(height >= 0)
