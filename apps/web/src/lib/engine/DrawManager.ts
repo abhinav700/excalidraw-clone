@@ -77,7 +77,7 @@ export class DrawManager {
     this.isPanning = false;
     this.isCtrlMetaActive = false;
     
-    this.scale = 1;
+    this.scale = canvasState.scale;
     this.lines = [];
     this.activeTextArea = null;
     this.activeTextAreaPosition = null;
@@ -214,6 +214,8 @@ export class DrawManager {
    public drawExistingShapes() {
     
     this.ctx.setTransform(this.scale, 0, 0, this.scale, this.totalPanOffset.x, this.totalPanOffset.y);
+    console.log(this.existingShapes);
+   
     this.ctx.clearRect(-this.totalPanOffset.x/this.scale, -this.totalPanOffset.y/this.scale, this.canvas.width / this.scale, this.canvas.height/ this.scale);
     
     this.existingShapes.map((item: ExistingShape) => {
@@ -287,8 +289,6 @@ export class DrawManager {
         const initialOffset = TEXTAREA_BORDER_SIZE + TEXTAREA_PADDING;
         const {color, fontSize, fontFamily, textAlignment} = message.fontConfiguration;
        
-        console.log(message.fontConfiguration);
-        
         this.ctx.textBaseline = "top";
         this.ctx.fillStyle = color;
         this.ctx.font = `${fontSizeMapping[this.fontSize]}px ${fontFamily}`;
@@ -316,7 +316,6 @@ export class DrawManager {
       else
         newScale = Math.min(3, this.scale + 0.1);
       
-        this.scale = newScale;
         this.setCanvasState({...this.canvasState, scale : newScale})
         
         this.drawExistingShapes();
@@ -360,16 +359,15 @@ private handleText(e: MouseEvent) {
         const canvasContainer = document.getElementById("canvas-container");
       
         let textarea: HTMLTextAreaElement | null = document.createElement("textarea");
-        
+        const fontSizeValue = fontSizeMapping[this.fontSize];
         Object.assign(textarea.style, {
             position: "absolute",
             left: `${x}px`,
             top: `${y}px`,
             color: this.strokeStyle,
-            fontSize: `${fontSizeMapping[this.fontSize]}`,
+            fontSize: `${fontSizeValue}px`,
             padding: `${TEXTAREA_PADDING}px`,
-            minHeight: `${this.fontSize + 4}px`,
-            height: `${this.fontSize + 4}px`,
+            height: `${fontSizeValue + 4}px`,
             overflow: "hidden",
             minWidth: "100px",
             border: `${TEXTAREA_BORDER_SIZE}px solid #ccc`,
@@ -610,11 +608,10 @@ private handleText(e: MouseEvent) {
         case "hand":
           this.panEnd = {x: e.clientX, y: e.clientY};
           let currentPanOffset = calculatePanOffset(this.panStart!, this.panEnd!)!;
-          
-          this.setCanvasState({...this.canvasState, totalPanOffset : {
+          this.totalPanOffset = {
             x: currentPanOffset.x + this.totalPanOffset.x,
             y: currentPanOffset.y + this.totalPanOffset.y    
-          }})
+          }
           
           this.panStart = this.panEnd;
           break;
@@ -701,6 +698,7 @@ private handleText(e: MouseEvent) {
           break;
         case "hand":
           this.isPanning = false;
+          this.setCanvasState({...this.canvasState, totalPanOffset: this.totalPanOffset});
           return;
         default:
           return;

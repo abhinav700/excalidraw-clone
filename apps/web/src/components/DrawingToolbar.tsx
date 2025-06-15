@@ -9,38 +9,34 @@ type DrawingToolbarProps = {
 }
 
 const DrawingToolbar = ({canvasManager, canvasState}: DrawingToolbarProps) => {
-  const [tool, setTool]= useState<Tool>(canvasState.selectedTool);
-  
-    useEffect(() => {
-      canvasManager.setSelectedTool(tool)
-    }, [tool])
+  const [currentTool, setCurrentTool]= useState<Tool>(canvasState.selectedTool);
  
     return <div className="flex  absolute top-[5%] rounded-lg left-[40%] py-0 bg-slate-800  text-white items-center justify-center">
-    <ToolButton toolName="selection" setTool={setTool} tool={tool}>
+    <ToolButton setCurrentTool={setCurrentTool} canvasManager={canvasManager}  toolName="selection" currentTool={currentTool}>
       <MousePointer/>
     </ToolButton>
-    <ToolButton toolName="hand" setTool={setTool} tool={tool}>
+    <ToolButton setCurrentTool={setCurrentTool} canvasManager={canvasManager}  toolName="hand" currentTool={currentTool}>
       <Hand/>
     </ToolButton>
-    <ToolButton toolName="rectangle" setTool={setTool} tool={tool}>
+    <ToolButton setCurrentTool={setCurrentTool} canvasManager={canvasManager}  toolName="rectangle" currentTool={currentTool}>
       <RectangleHorizontal/>
     </ToolButton>
-    <ToolButton toolName="circle" setTool={setTool} tool={tool}>
+    <ToolButton setCurrentTool={setCurrentTool} canvasManager={canvasManager}  toolName="circle" currentTool={currentTool}>
       <Circle/>
     </ToolButton>
-    <ToolButton toolName="pencil" setTool={setTool} tool={tool}>
+    <ToolButton setCurrentTool={setCurrentTool} canvasManager={canvasManager}  toolName="pencil" currentTool={currentTool}>
       <Pencil/>
     </ToolButton>
-    <ToolButton toolName="eraser" setTool={setTool} tool={tool}>
+    <ToolButton setCurrentTool={setCurrentTool} canvasManager={canvasManager}  toolName="eraser" currentTool={currentTool}>
       <Eraser/>
     </ToolButton>
-    <ToolButton toolName="line" setTool={setTool} tool={tool}>
+    <ToolButton setCurrentTool={setCurrentTool} canvasManager={canvasManager}  toolName="line" currentTool={currentTool}>
       < Minus/>
     </ToolButton>
-    <ToolButton toolName="arrow" setTool={setTool} tool={tool}>
+    <ToolButton setCurrentTool={setCurrentTool} canvasManager={canvasManager}  toolName="arrow" currentTool={currentTool}>
       <ArrowUpRight/>
     </ToolButton>
-    <ToolButton toolName="text" setTool={setTool} tool={tool}>
+    <ToolButton setCurrentTool={setCurrentTool} canvasManager={canvasManager}  toolName="text" currentTool={currentTool}>
       <WholeWordIcon/>
     </ToolButton>
   </div>
@@ -50,15 +46,16 @@ const DrawingToolbar = ({canvasManager, canvasState}: DrawingToolbarProps) => {
 interface ToolButtonProps {
   toolName: Tool;
   children: React.ReactNode;
-  setTool: React.Dispatch<SetStateAction<Tool>>;
-  tool: Tool;
+  currentTool: Tool;
+  setCurrentTool: React.Dispatch<SetStateAction<Tool>>;
+  canvasManager: DrawManager;
 }
 
-const ToolButton = ({ toolName, children, setTool, tool }: ToolButtonProps) => {
+const ToolButton = ({ toolName, children, currentTool, setCurrentTool,canvasManager }: ToolButtonProps) => {
   return (
     <div
-      className={`w-full flex items-center justify-center cursor-pointer my-1 rounded-xl ${tool == toolName && "bg-slate-400"} hover:bg-slate-400 p-2`}
-      onClick={(e) => {setTool(toolName)}}
+      className={`w-full flex items-center justify-center cursor-pointer my-1 rounded-xl ${currentTool == toolName && "bg-slate-400"} hover:bg-slate-400 p-2`}
+      onClick={(e) => {canvasManager.setSelectedTool(toolName); setCurrentTool(toolName)}}
     >
       {children}
     </div>
