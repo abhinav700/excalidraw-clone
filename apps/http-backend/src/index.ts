@@ -4,9 +4,12 @@ import { gateRoom } from "./middlewares/gateRoom";
 import { Request, Response } from "express";
 import { createRoomSchema } from "@repo/common/types";
 import { prisma } from "@repo/db/client";
+import cors from "cors";
+
 const app = express();
 
 app.use(express.json());
+app.use(cors());
 
 app.use("/user", userRouter)
 app.post("/room",gateRoom, async (req:Request, res: Response) => {
