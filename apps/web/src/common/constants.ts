@@ -41,3 +41,5 @@ export const textAlignmentIconMapping: Record<TextAlignment, any> = {
   'center': AlignCenter,
   'right': AlignRight,
 }
+
+export const TEXTAREA_OFFSET_Y: number = 18;

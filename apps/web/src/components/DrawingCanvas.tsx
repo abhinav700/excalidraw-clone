@@ -36,7 +36,7 @@ const DrawingCanvas = ({socket, existingShapes, setExistingShapes, roomId} : Dra
    totalPanOffset: {x: 0, y: 0},
    fontFamily: 'Excalifont',
    fontSize: 'medium',
-   textAlignment: 'center',
+   textAlignment: 'left',
   })
   
  useEffect(() => {

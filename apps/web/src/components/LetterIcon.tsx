@@ -9,8 +9,8 @@ type LetterIconProps = {
 const LetterIcon = ({ text, textConfigType }: LetterIconProps) => (
 
   textConfigType == "font family" 
-    ? <span className="text-xl font-bold" style={{fontFamily: text}}>{text == "Lilita One" ? "H" : "A"}</span>
-    : <span className="text-xl font-bold" style={{fontFamily: 'Comic Shanns'}}>{fontSizeLetterMapping[text as FontSize]}</span>
+    ? <span className="text-xl" style={{fontFamily: text}}>{text == "Lilita One" ? "H" : "A"}</span>
+    : <span className="text-xl" style={{fontFamily: 'Comic Shanns'}}>{fontSizeLetterMapping[text as FontSize]}</span>
 );
 
 export default LetterIcon;

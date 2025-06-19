@@ -5,7 +5,9 @@ type SendTextToBackend = (startX: number, startY: number, content: string, width
 
 const sendTextToBackend: SendTextToBackend = (startX: number, startY: number, content: string, width: number, height: number, socket: WebSocket, roomId: string, fontConfiguration: FontConfiguration) => {
   try{
-    
+   if(content.trim() == '') 
+    return;
+
    socket.send(
         JSON.stringify({
           type: CHAT,

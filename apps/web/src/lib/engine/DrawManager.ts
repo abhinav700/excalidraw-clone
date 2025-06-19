@@ -5,10 +5,10 @@ import { CHAT, ERASE_SHAPE} from "@repo/common/constants";
 import constructLine from "../utils/constructLine";
 import constructArrow from "../utils/constructArrow";
 import sendTextToBackend from "../utils/textareaUtils/sendTextToBackend";
-import { TEXTAREA_PADDING, TEXTAREA_BORDER_SIZE } from "../constants";
+import { TEXTAREA_PADDING } from "../constants";
 import calculatePanOffset from "../utils/calculatePanOffset";
 import { SetStateAction } from "react";
-import { fontSizeValueMapping } from "@/common/constants";
+import { fontSizeValueMapping, TEXTAREA_OFFSET_Y } from "@/common/constants";
 
 export class DrawManager {
   private canvas: HTMLCanvasElement;
@@ -393,7 +393,7 @@ private handleText(e: MouseEvent) {
         Object.assign(textarea.style, {
             position: "absolute",
             left: `${x}px`,
-            top: `${y}px`,
+            top: `${y - TEXTAREA_OFFSET_Y}px`,
             color: this.strokeStyle,
             fontSize: `${fontSizeValue}px`,
             padding: `${TEXTAREA_PADDING}px`,
@@ -401,7 +401,7 @@ private handleText(e: MouseEvent) {
             overflow: "hidden",
             minWidth: "100px",
             textAlign:this.textAllignment,
-            // border: `${TEXTAREA_BORDER_SIZE}px solid #ccc`,
+            // border: `${TEXTAREA_BORDER_SIZE}px solid red`,
             outline: "none",
             fontFamily: this.fontFamily,
             boxSizing: "border-box",
