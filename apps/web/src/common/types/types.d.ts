@@ -73,11 +73,14 @@ export type FontSizeValues = 14 | 18 | 22 | 26;
 
 export type FontFamily = "Comic Shanns" | "Excalifont" | "Lilita One" | "Nunito";
 
+export type FontWeight = "thin" | "medium" | "bold";
+
 export type FontConfiguration={
   color: string;
   fontFamily: FontFamily;
   fontSize:  FontSize;
   textAlignment: TextAlignment;
+  fontWeight: FontWeight
 }
 
 export type CanvasState = {
@@ -89,5 +92,6 @@ export type CanvasState = {
   scale: number;
   fontFamily: FontFamily;
   fontSize: FontSize;
-  textAlignment: TextAlignment
+  textAlignment: TextAlignment,
+  fontWeight: FontWeight;
 }

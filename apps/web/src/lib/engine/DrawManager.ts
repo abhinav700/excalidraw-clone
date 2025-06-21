@@ -1,4 +1,4 @@
-import { Tool, Shape, ExistingShape, LineSegment, Coordinates, StrokeConfiguration, StrokeWidthValues, CanvasState, FontSize, FontFamily, TextAlignment, FontConfiguration } from "@/common/types/types";
+import { Tool, Shape, ExistingShape, LineSegment, Coordinates, StrokeConfiguration, StrokeWidthValues, CanvasState, FontSize, FontFamily, TextAlignment, FontConfiguration, FontWeight } from "@/common/types/types";
 
 import triggerEraseEvent from "@/lib/utils/triggerEraseEvent";
 import { CHAT, ERASE_SHAPE} from "@repo/common/constants";
@@ -8,7 +8,7 @@ import sendTextToBackend from "../utils/textareaUtils/sendTextToBackend";
 import { TEXTAREA_PADDING } from "../constants";
 import calculatePanOffset from "../utils/calculatePanOffset";
 import { SetStateAction } from "react";
-import { fontSizeValueMapping, TEXTAREA_OFFSET_Y } from "@/common/constants";
+import { fontSizeValueMapping, fontWeightValueMapping, TEXTAREA_OFFSET_Y } from "@/common/constants";
 
 export class DrawManager {
   private canvas: HTMLCanvasElement;
@@ -26,7 +26,8 @@ export class DrawManager {
   private fontSize: FontSize;
   private fontFamily: FontFamily;
   private textAllignment: TextAlignment;
-  
+  private fontWeight: FontWeight;
+
   private socket: WebSocket;
   private roomId: string;
   private selectedTool: Tool;
@@ -71,6 +72,7 @@ export class DrawManager {
     this.fontSize= this.canvasState.fontSize;
     this.fontFamily = this.canvasState.fontFamily;
     this.textAllignment = this.canvasState.textAlignment;
+    this.fontWeight = canvasState.fontWeight
     this.ctx.font = `${fontSizeValueMapping[this.fontSize]}px Aerial`;
     
     this.socket = socket;
@@ -206,6 +208,14 @@ export class DrawManager {
   public setTextAlignment(textAlignment: TextAlignment){
     try{
       this.setCanvasState({...this.canvasState, textAlignment})
+    } catch(err){
+      console.log(err);
+    }
+  }
+
+  public setFontWeight(fontWeight: FontWeight){
+    try{
+      this.setCanvasState({...this.canvasState, fontWeight});
     } catch(err){
       console.log(err);
     }
@@ -406,6 +416,7 @@ private handleText(e: MouseEvent) {
             // border: `${TEXTAREA_BORDER_SIZE}px solid red`,
             outline: "none",
             fontFamily: this.fontFamily,
+            fontWeight: fontWeightValueMapping[this.fontWeight],
             boxSizing: "border-box",
             resize: "none",
             whiteSpace: "nowrap"
@@ -466,6 +477,7 @@ private handleText(e: MouseEvent) {
               fontSize: this.fontSize,
               fontFamily: this.fontFamily,
               textAlignment: this.textAllignment,
+              fontWeight: this.fontWeight,
               color: this.strokeStyle
             }  
 

@@ -37,6 +37,7 @@ const DrawingCanvas = ({socket, existingShapes, setExistingShapes, roomId} : Dra
    fontFamily: 'Excalifont',
    fontSize: 'medium',
    textAlignment: 'left',
+   fontWeight: 'medium',
   })
   
  useEffect(() => {

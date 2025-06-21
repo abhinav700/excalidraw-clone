@@ -1,5 +1,5 @@
 import { AlignCenter, AlignLeft, AlignRight, CodeXml, Pencil } from "lucide-react";
-import { FontFamily, FontSize, FontSizeValues, StrokeWidthValues, TextAlignment } from "./types/types";
+import { FontFamily, FontSize, FontSizeValues, FontWeight, StrokeWidthValues, TextAlignment } from "./types/types";
 import LetterIcon from "@/components/LetterIcon";
 import { JSX, ReactNode } from "react";
 
@@ -40,6 +40,12 @@ export const textAlignmentIconMapping: Record<TextAlignment, any> = {
   'left': AlignLeft,
   'center': AlignCenter,
   'right': AlignRight,
+}
+
+export const fontWeightValueMapping: Record<FontWeight, number> = {
+  'thin': 100,
+  'medium': 500,
+  'bold': 800
 }
 
 export const TEXTAREA_OFFSET_Y: number = 18;

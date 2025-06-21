@@ -41,7 +41,7 @@ const FontSizeItem = ({fontSize, setFontSize, canvasManager, value}: FontSizeIte
             title={value}
             onClick={() => {canvasManager.setFontSize(value); setFontSize(value)}}
           >
-            <LetterIcon text={value} textConfigType={'font fize'} />
+            <LetterIcon text={value} textConfigType={'font size'} />
   </div>
 }
 export default FontSizeConfig; 
