@@ -336,7 +336,7 @@ export class DrawManager {
         for(let i = 0; i < lines.length; i++){
          
           const lineX = shape.startX + initialOffset;
-          const lineY = shape.startY + initialOffset + (i * 1.5 * fontSizeValueMapping[this.fontSize]);
+          const lineY = shape.startY + initialOffset + (i * 1.5 * fontSizeValueMapping[this.fontSize]) - TEXTAREA_OFFSET_Y;
           this.ctx.fillText(lines[i], lineX ,lineY, shape.width);
         }
         
@@ -453,7 +453,7 @@ private handleText(e: MouseEvent) {
             
             if(x + currentTextAreaWidth + 10 >= this.windowInnerWidth)
               return;
-            textarea.style.width = `${Math.max(mirrorSpan.offsetWidth + 4, 100)}px`; 
+            textarea.style.width = `${Math.max(mirrorSpan.clientWidth + fontSizeValueMapping[this.fontSize]*1.2, 100)}px`; 
 
         };
 
@@ -470,7 +470,7 @@ private handleText(e: MouseEvent) {
         const save = () => {
             let content = textarea!.value.trim();
 
-            let width = textarea!.offsetWidth;
+            let width = textarea!.scrollWidth;
             let height = textarea!.offsetHeight;
 
             const fontConfiguration: FontConfiguration = {
