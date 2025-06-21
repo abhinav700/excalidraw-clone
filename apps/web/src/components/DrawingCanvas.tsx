@@ -49,7 +49,7 @@ const DrawingCanvas = ({socket, existingShapes, setExistingShapes, roomId} : Dra
     if (!canvasRef.current || !socket) return;
     
     const canvasManagerObj = new DrawManager(canvasRef.current, socket, roomId, existingShapes, setExistingShapes, canvasState
-    ,setCanvasState);
+    ,setCanvasState, document.documentElement.clientWidth);
     setCanvasManager(canvasManagerObj);
 
     return (() =>{

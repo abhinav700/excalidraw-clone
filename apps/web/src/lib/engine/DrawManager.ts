@@ -38,7 +38,7 @@ export class DrawManager {
   private panEnd: Coordinates | null;
   private canvasCenter: Coordinates;
   private totalPanOffset: Coordinates;
-
+  private windowInnerWidth: number;
   private isDrawing: boolean;
   private isCtrlMetaActive: boolean;
   private isPanning: boolean;
@@ -53,7 +53,8 @@ export class DrawManager {
     existingShapes: ExistingShape[],
     setExistingShapes: React.Dispatch<SetStateAction<ExistingShape[]>>,
     canvasState: CanvasState,
-    setCanvasState: React.Dispatch<SetStateAction<CanvasState>>
+    setCanvasState: React.Dispatch<SetStateAction<CanvasState>>,
+    windowInnerWidth: number
   ) {
     this.canvas = canvas;
     this.ctx = canvas.getContext("2d")!;
@@ -83,6 +84,7 @@ export class DrawManager {
     this.panEnd = null;
     this.canvasCenter = {x: this.canvas.width/2, y: this.canvas.height / 2};
     this.totalPanOffset = canvasState.totalPanOffset;
+    this.windowInnerWidth = windowInnerWidth;
     
     this.isDrawing = false;
     this.isPanning = false;
@@ -435,8 +437,12 @@ private handleText(e: MouseEvent) {
             if (!textarea || !mirrorSpan) return;
 
             mirrorSpan.textContent = textarea.value || " ";
-            textarea.style.width = `${Math.max(mirrorSpan.offsetWidth + 4, 100)}px`; 
+            const currentTextAreaWidth = textarea.clientWidth;
             textarea.style.height = `${Math.max(textarea.scrollHeight, fontSizeValueMapping[this.fontSize] + 4)}px`;
+            
+            if(x + currentTextAreaWidth + 10 >= this.windowInnerWidth)
+              return;
+            textarea.style.width = `${Math.max(mirrorSpan.offsetWidth + 4, 100)}px`; 
 
         };
 
