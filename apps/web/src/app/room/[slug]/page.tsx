@@ -10,11 +10,11 @@ type ChatRoomProps = {
 
 const getRoomId = async (slug: string) => {
   const response = await axios.get(`${HTTP_BACKEND_URL}/room/${slug}`)
-  return response.data.room.id;
+  return (response.data as any).room.id;
 }
 const getExistingShapes = async (roomId: string) => {
   const response = await axios.get(`${HTTP_BACKEND_URL}/chats/${roomId}`);
-  return response.data.messages;
+  return (response.data as any).messages;
 }
 const ChatRoom = async ({params}: ChatRoomProps) => {
   const slug: string = (await params).slug;
