@@ -95,3 +95,16 @@ export type CanvasState = {
   textAlignment: TextAlignment,
   fontWeight: FontWeight;
 }
+
+export type SignUpUser = {
+  name: string,
+  email: string,
+  password: string,
+  confirmPassword: string,
+  [key: string]: string | number;
+}
+
+export type SignInUser = {
+  email: string,
+  password: string,
+}

@@ -1,17 +1,21 @@
 import { Request, Response, Router } from "express";
 import jwt from "jsonwebtoken";
 import {JWT_SECRET} from "@repo/backend-common/config";
-import {createRoomSchema, createUserSchema, SignUserSchema} from "@repo/common/types";
 import {prisma} from "@repo/db/client"
 import bcrypt from "bcryptjs"
 import { gateRoom } from "../middlewares/gateRoom";
+import { SignInUserSchema, SignUpUserSchema } from "@repo/common/types";
 
 const userRouter: Router = Router();
 
 userRouter.post("/signup", async (req:Request, res: Response) =>{
   try{
   
-    const {email, password, name} = createUserSchema.parse(await req.body);
+    const {email, password, confirmPassword, name} = SignUpUserSchema.parse(await req.body);
+    if(password != confirmPassword){
+      res.status(401).json({error: "Passwords do not match"});
+      return;
+    }
     
     const user = await prisma.user.findFirst({
       where:{
@@ -35,8 +39,10 @@ userRouter.post("/signup", async (req:Request, res: Response) =>{
         password: hashedPassword
       }
     })
+  
+    const token = jwt.sign({userId: newUser.id}, JWT_SECRET);
+    res.status(200).json({token, user: newUser});
 
-    res.status(200).json({user: newUser});
     return;
   } catch(err){
     console.log(err);
@@ -46,7 +52,8 @@ userRouter.post("/signup", async (req:Request, res: Response) =>{
 
 userRouter.post("/signin", async (req:Request, res:Response) => {
   try{
-    const parsedRequest = SignUserSchema.safeParse(await req.body);
+    const parsedRequest = SignInUserSchema.safeParse(await req.body);
+   
     if(!parsedRequest.success){
       res.status(200).json({
         message: "incorrect input"

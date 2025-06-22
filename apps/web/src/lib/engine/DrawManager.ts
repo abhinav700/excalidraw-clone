@@ -336,7 +336,7 @@ export class DrawManager {
         for(let i = 0; i < lines.length; i++){
          
           const lineX = shape.startX + initialOffset;
-          const lineY = shape.startY + initialOffset + (i * 1.5 * fontSizeValueMapping[this.fontSize]) - TEXTAREA_OFFSET_Y;
+          const lineY = shape.startY + initialOffset + (i * 1.5 * fontSizeValueMapping[this.fontSize]);
           this.ctx.fillText(lines[i], lineX ,lineY, shape.width);
         }
         
@@ -481,7 +481,7 @@ private handleText(e: MouseEvent) {
               color: this.strokeStyle
             }  
 
-            sendTextToBackend((x - this.totalPanOffset.x)/this.scale, (y - this.totalPanOffset.y)/this.scale,
+            sendTextToBackend((x - this.totalPanOffset.x)/this.scale, (y - this.totalPanOffset.y - TEXTAREA_OFFSET_Y)/this.scale,
               content, width, height, this.socket, this.roomId, fontConfiguration);
 
             if (canvasContainer!.contains(textarea!) && textarea !== null) {

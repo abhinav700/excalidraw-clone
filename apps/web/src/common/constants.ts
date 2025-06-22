@@ -1,7 +1,6 @@
 import { AlignCenter, AlignLeft, AlignRight, CodeXml, Pencil } from "lucide-react";
 import { FontFamily, FontSize, FontSizeValues, FontWeight, StrokeWidthValues, TextAlignment } from "./types/types";
 import LetterIcon from "@/components/LetterIcon";
-import { JSX, ReactNode } from "react";
 
 export const colors: string[] = ["#FF0000", "#0000FF", "#008000", "#FFFFFF", "#000000", "#800080", "#FFA500"];
 

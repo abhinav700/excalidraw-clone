@@ -1,7 +1,7 @@
 "use client";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import "./app.css"
+
 const Home = () => {
   const [slug, setSlug] = useState("");
   const router = useRouter();
