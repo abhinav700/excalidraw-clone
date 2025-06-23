@@ -6,6 +6,7 @@ import DrawingToolbar from "./DrawingToolbar";
 import { DrawManager } from "@/lib/engine/DrawManager";
 import { CanvasState, ExistingShape } from "@/common/types/types";
 import DrawStyleConfigBar from "./DrawStyleConfigBar/DrawStyleConfigBar";
+import Logout from "./Logout";
 
 export type StartCoordinates = {
   startX: number;
@@ -61,6 +62,7 @@ const DrawingCanvas = ({socket, existingShapes, setExistingShapes, roomId} : Dra
 
   
    return   <div className="w-screen h-screen m-0 p-0 overflow-hidden text-black" id="canvas-container">
+    <Logout/>
     <DrawStyleConfigBar canvasState={canvasState} canvasManager={canvasManager!}/>
    {canvasManager && <DrawingToolbar canvasManager={canvasManager!} canvasState={canvasState}/>}
       <canvas ref={canvasRef} 

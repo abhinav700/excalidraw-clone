@@ -48,3 +48,5 @@ export const fontWeightValueMapping: Record<FontWeight, number> = {
 }
 
 export const TEXTAREA_OFFSET_Y: number = 18;
+
+export const SIGN_IN_ROUTE = '/';
