@@ -1,18 +1,25 @@
 import express from "express";
 import userRouter from "./routers/userRouter";
-import { gateRoom } from "./middlewares/gateRoom";
+import { authProtect } from "./middlewares/authProutect";
 import { Request, Response } from "express";
 import { createRoomSchema } from "@repo/common/types";
 import { prisma } from "@repo/db/client";
 import cors from "cors";
-
+import cookieParser from "cookie-parser";
 const app = express();
 
 app.use(express.json());
-app.use(cors());
+
+app.use(cors({
+  credentials: true,
+  origin:"http://localhost:3000",
+}));
+
+app.use(cookieParser());
 
 app.use("/user", userRouter)
-app.post("/room",gateRoom, async (req:Request, res: Response) => {
+
+app.post("/room",authProtect, async (req:Request, res: Response) => {
   try{
     const parsedRequest = createRoomSchema.safeParse(await req.body);
     if(!parsedRequest.success){

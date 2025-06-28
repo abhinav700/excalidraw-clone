@@ -1,14 +1,19 @@
 import { SIGN_IN_ROUTE } from '@/common/constants';
+import { HTTP_BACKEND_URL } from '@/config';
 import { useRouter } from 'next/navigation';
 import React from 'react'
 
 const Logout = () => {
   const router = useRouter();
   
-  const handleLogout = (e: React.MouseEvent<HTMLButtonElement>) => {
+  const handleLogout = async (e: React.MouseEvent<HTMLButtonElement>) => {
     try{
-      localStorage.removeItem('token');
-      router.push(SIGN_IN_ROUTE);
+      let response = await axios.post(`${HTTP_BACKEND_URL}/logout`)
+      let data: any = await response.data;
+      if(data.success){
+        alert("Logout Successful")
+      }
+      router.push('/')
     } catch(err){
       console.log(err);
     }

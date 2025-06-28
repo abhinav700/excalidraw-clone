@@ -38,24 +38,23 @@ const Signup = () => {
   const  onSubmitHandler = async (e: any) => {
     try{
       e.preventDefault();
-      const response = await axios.post(`${HTTP_BACKEND_URL}/user/signup`, {
-       ...user
-      })
-      const data = await response.data;
-      const token: string = (data as any).token;
 
-      localStorage.setItem('token', token);
-      if(token && token.trim() != ''){
+      const requestBody = {...user};
+      const requestOptions = {withCredentials: true};
+
+      const response = await axios.post(`${HTTP_BACKEND_URL}/user/signin`, requestBody,requestOptions);
+
+      if(response.status == 200){
         router.push('/join-room')
       }
-
+      
     } catch(err){
       console.log(err);
     }
   }
   return (
     <div className="w-full flex flex-col h-[100vh] justify-center items-center">
-        <form className="bg-slate-900 max-h-[500px] w-[350px] p-2 rounded-md text-white">
+        <div className="bg-slate-900 max-h-[500px] w-[350px] p-2 rounded-md text-white">
           <h1 className="text-center text-[30px] font-bold">Sign up</h1>
           <div className="mt-[10%]">
             <label htmlFor="name">Name: </label>
@@ -86,7 +85,7 @@ const Signup = () => {
           <p className="text-center mt-5">
             Already have an account? <Link className="text-blue-300 hover:underline" href={'/'}>Sign In</Link>
           </p>  
-        </form>
+        </div>
       </div>
   )
 }

@@ -3,7 +3,7 @@ import jwt from "jsonwebtoken";
 import {JWT_SECRET} from "@repo/backend-common/config";
 import {prisma} from "@repo/db/client"
 import bcrypt from "bcryptjs"
-import { gateRoom } from "../middlewares/gateRoom";
+import { authProtect } from "../middlewares/authProutect";
 import { SignInUserSchema, SignUpUserSchema } from "@repo/common/types";
 
 const userRouter: Router = Router();
@@ -41,9 +41,15 @@ userRouter.post("/signup", async (req:Request, res: Response) =>{
     })
   
     const token = jwt.sign({userId: newUser.id}, JWT_SECRET);
-    res.status(200).json({token, user: newUser});
 
-    return;
+     const thirtyMinutesFromNow = 1000 * 60 * 30;
+
+    res.status(200).cookie('token', token, {
+      httpOnly: true,
+      maxAge: thirtyMinutesFromNow,
+      path:'/'
+    }).json({user: newUser});
+
   } catch(err){
     console.log(err);
     res.status(500).json({error: "Internal server error"});
@@ -80,9 +86,16 @@ userRouter.post("/signin", async (req:Request, res:Response) => {
       return;
     }
 
-
     const token = jwt.sign({userId: user.id}, JWT_SECRET);
-    res.status(200).json(token)
+
+    const thirtyMinutesFromNow = 1000 * 60 * 30;
+
+    res.status(200).cookie('token', token, {
+      httpOnly: true,
+      maxAge: thirtyMinutesFromNow,
+      path:'/'
+    }).send();
+
     return;
   } catch(err){
     console.log(err)
@@ -90,5 +103,16 @@ userRouter.post("/signin", async (req:Request, res:Response) => {
   }
 })
 
+userRouter.post('/logout', authProtect, async (req: Request, res: Response) => {
+  try{
+   res.status(200).cookie('token', '', {
+      httpOnly: true,
+      path:'/'
+    }).json({success: true});
+ 
+  } catch(err){
+    console.log(err);
+  }
+})
 
 export default userRouter;

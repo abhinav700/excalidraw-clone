@@ -32,25 +32,22 @@ const Signin = () => {
         return;
       }
 
-      const response = await axios.post(`${HTTP_BACKEND_URL}/user/signin`, {
-        ...user
-      })
+      const requestBody = {...user};
+      const requestOptions = {withCredentials: true};
 
-      const token: any = await response.data;
+      const response = await axios.post(`${HTTP_BACKEND_URL}/user/signin`, requestBody, requestOptions);
+      console.log(response);
 
-      if(!token)
-        return;
-
-      localStorage.setItem('token', token);
-      router.push('/join-room')
-    
+      if(response.status == 200){
+        router.push('/join-room')
+      }
     }catch(err){
       console.log(err);
     }
   }
   return (
     <div className="w-full flex flex-col h-[100vh] justify-center items-center">
-        <form action="post" className="bg-slate-900 max-h-[400px] max-w-[350px] p-2 rounded-md text-white">
+        <div className="bg-slate-900 max-h-[400px] max-w-[350px] p-2 rounded-md text-white">
           <h1 className="text-center text-[30px] font-bold">Sign in</h1>
           <div className="mt-[10%]">
             <label htmlFor="email">Email: </label>
@@ -66,7 +63,7 @@ const Signin = () => {
             <p className="text-center mt-5">
             Don't have an account? <Link className="text-blue-300 hover:underline" href={'/signup'}>Sign Up</Link>
           </p>
-        </form>
+        </div>
       </div>
   ) 
 }

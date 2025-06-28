@@ -1,1 +1,1 @@
-{"root":["./src/custom.d.ts","./src/index.ts","./src/middlewares/gateRoom.ts","./src/routers/userRouter.ts"],"version":"5.8.2"}
+{"root":["./src/custom.d.ts","./src/index.ts","./src/middlewares/authProutect.ts","./src/routers/userRouter.ts"],"version":"5.8.2"}
