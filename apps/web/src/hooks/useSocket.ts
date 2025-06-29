@@ -1,12 +1,19 @@
 import { useEffect, useState } from "react";
 import {JOIN_ROOM} from "@repo/common/constants"
+import { parseCookies } from "@/lib/utils/parseCookies";
+
+
 const useSocket = ({roomId} : {roomId: string}) => {
   const [loading, setLoading]= useState<boolean>(true);
   const [socket, setSocket] = useState<WebSocket | null>();
 
   useEffect(() => {
     try{
-      const token = localStorage.getItem('token');
+      const cookies = document.cookie
+      const decodedCookies = decodeURIComponent(cookies);
+
+      const token = parseCookies(decodedCookies, "token");
+
       const ws = new WebSocket(`ws://localhost:8080?token=${token}`);
 
       ws.onopen = () => {

@@ -45,7 +45,6 @@ userRouter.post("/signup", async (req:Request, res: Response) =>{
      const thirtyMinutesFromNow = 1000 * 60 * 30;
 
     res.status(200).cookie('token', token, {
-      httpOnly: true,
       maxAge: thirtyMinutesFromNow,
       path:'/'
     }).json({user: newUser});
@@ -91,7 +90,6 @@ userRouter.post("/signin", async (req:Request, res:Response) => {
     const thirtyMinutesFromNow = 1000 * 60 * 30;
 
     res.status(200).cookie('token', token, {
-      httpOnly: true,
       maxAge: thirtyMinutesFromNow,
       path:'/'
     }).send();
@@ -106,7 +104,6 @@ userRouter.post("/signin", async (req:Request, res:Response) => {
 userRouter.post('/logout', authProtect, async (req: Request, res: Response) => {
   try{
    res.status(200).cookie('token', '', {
-      httpOnly: true,
       path:'/'
     }).json({success: true});
  
