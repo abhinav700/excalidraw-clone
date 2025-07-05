@@ -57,7 +57,7 @@ export type ExistingShape = {
   id: number;
 }
 
-export type StrokeWidthValues = "16" | "8" | "2";
+export type StrokeWidthValues = "8" | "4" | "2";
 
 export type StrokeConfiguration={
   strokeStyle: string;

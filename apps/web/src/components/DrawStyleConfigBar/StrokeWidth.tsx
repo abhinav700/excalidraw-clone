@@ -1,4 +1,4 @@
-import { WidthOptions, widths } from '@/common/constants';
+import { WidthOptions, widths } from '@/lib/constants';
 import { CanvasState, StrokeWidthValues } from '@/common/types/types';
 import { DrawManager } from '@/lib/engine/DrawManager'
 import React, { SetStateAction, useState } from 'react'

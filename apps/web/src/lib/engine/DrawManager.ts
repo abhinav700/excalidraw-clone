@@ -8,7 +8,7 @@ import sendTextToBackend from "../utils/textareaUtils/sendTextToBackend";
 import { TEXTAREA_PADDING } from "../constants";
 import calculatePanOffset from "../utils/calculatePanOffset";
 import { SetStateAction } from "react";
-import { fontSizeValueMapping, fontWeightValueMapping, TEXTAREA_OFFSET_Y } from "@/common/constants";
+import { fontSizeValueMapping, fontWeightValueMapping, TEXTAREA_OFFSET_Y } from "@/lib/constants";
 
 export class DrawManager {
   private canvas: HTMLCanvasElement;
@@ -320,7 +320,8 @@ export class DrawManager {
           shape.startY,
           shape.endX,
           shape.endY,
-          this.ctx
+          this.ctx,
+          strokeWidth 
         );
       } else if (shape.type == "text"){
         const lines = shape.content.split('\n');
@@ -652,7 +653,7 @@ private handleText(e: MouseEvent) {
           constructLine(this.startX, this.startY, endX, endY, this.ctx);
           break;
         case "arrow":
-          constructArrow(this.startX, this.startY, endX, endY, this.ctx);
+          constructArrow(this.startX, this.startY, endX, endY, this.ctx, this.strokeWidth);
           break;
         case "hand":
           this.panEnd = {x: e.clientX, y: e.clientY};

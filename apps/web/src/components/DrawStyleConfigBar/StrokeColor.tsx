@@ -1,7 +1,7 @@
 import { DrawManager } from '@/lib/engine/DrawManager';
 import React, { useState } from 'react'
 import { CanvasState } from '@/common/types/types';
-import { colors } from '@/common/constants';
+import { colors } from '@/lib/constants';
 
 type StrokeStyleProps = {
   canvasManager: DrawManager;

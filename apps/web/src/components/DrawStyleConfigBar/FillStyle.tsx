@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import { DrawManager } from '@/lib/engine/DrawManager';
 import { CanvasState } from '@/common/types/types';
-import { colors } from '@/common/constants';
+import { colors } from '@/lib/constants';
 
 type FillStyleProps = {
   canvasManager: DrawManager;

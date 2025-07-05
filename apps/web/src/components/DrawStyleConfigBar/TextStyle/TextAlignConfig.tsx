@@ -1,4 +1,4 @@
-import { textAlignmentIconMapping } from '@/common/constants';
+import { textAlignmentIconMapping } from '@/lib/constants';
 import { CanvasState, TextAlignment } from '@/common/types/types';
 import { DrawManager } from '@/lib/engine/DrawManager'
 import React, { SetStateAction, useState } from 'react'

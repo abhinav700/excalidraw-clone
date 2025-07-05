@@ -1,4 +1,4 @@
-import { fontSizeLetterMapping, fontWeightValueMapping } from "@/common/constants";
+import { fontSizeLetterMapping, fontWeightValueMapping } from "@/lib/constants";
 import { FontSize, FontWeight } from "@/common/types/types";
 
 type LetterIconProps = {

@@ -1,4 +1,4 @@
-import { fontSizeLetterMapping } from '@/common/constants';
+import { fontSizeLetterMapping } from '@/lib/constants';
 import { CanvasState, FontSize } from '@/common/types/types';
 import LetterIcon from '@/components/LetterIcon';
 import { DrawManager } from '@/lib/engine/DrawManager'

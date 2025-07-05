@@ -1,4 +1,4 @@
-import { SIGN_IN_ROUTE } from '@/common/constants';
+import { SIGN_IN_ROUTE } from '@/lib/constants';
 import { HTTP_BACKEND_URL } from '@/config';
 import { useRouter } from 'next/navigation';
 import React from 'react'

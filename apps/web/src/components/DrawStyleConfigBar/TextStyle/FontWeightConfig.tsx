@@ -1,4 +1,4 @@
-import { fontWeightValueMapping } from '@/common/constants';
+import { fontWeightValueMapping } from '@/lib/constants';
 import { CanvasState, FontWeight } from '@/common/types/types';
 import LetterIcon from '@/components/LetterIcon';
 import { DrawManager } from '@/lib/engine/DrawManager'

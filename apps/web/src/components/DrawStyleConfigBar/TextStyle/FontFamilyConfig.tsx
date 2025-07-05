@@ -1,4 +1,4 @@
-import { fontFamilyIconMapping } from '@/common/constants';
+import { fontFamilyIconMapping } from '@/lib/constants';
 import { CanvasState, FontFamily } from '@/common/types/types';
 import LetterIcon from '@/components/LetterIcon';
 import { DrawManager } from '@/lib/engine/DrawManager'
