@@ -77,3 +77,5 @@ export const ARROW_COORDINATE_OFFSET: Record<StrokeWidthValues, number> = {
 }
 
 export const ARROW_HEAD_LENGTH: number = 20;
+
+export const SHAPES_DATA_KEY: string = "shapes-data";

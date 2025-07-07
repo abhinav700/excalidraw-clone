@@ -5,10 +5,11 @@ import { CHAT, ERASE_SHAPE} from "@repo/common/constants";
 import constructLine from "../utils/constructLine";
 import constructArrow from "../utils/constructArrow";
 import sendTextToBackend from "../utils/textareaUtils/sendTextToBackend";
-import { TEXTAREA_PADDING } from "../constants";
+import { SHAPES_DATA_KEY, TEXTAREA_PADDING } from "../constants";
 import calculatePanOffset from "../utils/calculatePanOffset";
-import { SetStateAction } from "react";
+import { SetStateAction, useId } from "react";
 import { fontSizeValueMapping, fontWeightValueMapping, TEXTAREA_OFFSET_Y } from "@/lib/constants";
+import { stringify } from "querystring";
 
 export class DrawManager {
   private canvas: HTMLCanvasElement;
@@ -31,6 +32,7 @@ export class DrawManager {
   private socket: WebSocket;
   private roomId: string;
   private selectedTool: Tool;
+  private isCollaborationActive: boolean;
 
   private scale: number;
   private startX: number;
@@ -47,6 +49,7 @@ export class DrawManager {
   private lines: LineSegment[];
   private activeTextArea: HTMLTextAreaElement | null;
   private activeTextAreaPosition: Coordinates | null;
+
   constructor(
     canvas: HTMLCanvasElement,
     socket: WebSocket,
@@ -55,7 +58,8 @@ export class DrawManager {
     setExistingShapes: React.Dispatch<SetStateAction<ExistingShape[]>>,
     canvasState: CanvasState,
     setCanvasState: React.Dispatch<SetStateAction<CanvasState>>,
-    windowInnerWidth: number
+    windowInnerWidth: number,
+    isCollaborationActive: boolean
   ) {
     this.canvas = canvas;
     this.ctx = canvas.getContext("2d")!;
@@ -78,6 +82,7 @@ export class DrawManager {
     this.socket = socket;
     this.roomId = roomId;
     this.selectedTool = canvasState.selectedTool;
+    this.isCollaborationActive = isCollaborationActive;
 
     this.scale = canvasState.scale;
     this.startX = 0;
@@ -97,7 +102,9 @@ export class DrawManager {
     this.activeTextAreaPosition = null;
     
     this.drawExistingShapes();
-    this.initSocketHandlers();
+    if(this.isCollaborationActive){
+      this.initSocketHandlers();
+    }
 
     this.canvas.addEventListener("mousedown", this.mouseDownHandler);
     this.canvas.addEventListener("mousemove", this.mouseMoveHandler);
@@ -235,6 +242,7 @@ export class DrawManager {
             break;
 
           case ERASE_SHAPE:
+            
             this.existingShapes = this.existingShapes.filter(
               (shape) => shape.id != parsedData.id
             );
@@ -483,7 +491,7 @@ private handleText(e: MouseEvent) {
             }  
 
             sendTextToBackend((x - this.totalPanOffset.x)/this.scale, (y - this.totalPanOffset.y - TEXTAREA_OFFSET_Y)/this.scale,
-              content, width, height, this.socket, this.roomId, fontConfiguration);
+              content, width, height, this.socket, this.roomId, fontConfiguration, this.isCollaborationActive, this.setExistingShapes, this.existingShapes);
 
             if (canvasContainer!.contains(textarea!) && textarea !== null) {
                 textarea.removeEventListener('blur', handleBlur);
@@ -752,20 +760,28 @@ private handleText(e: MouseEvent) {
           return;
         case "eraser":
           this.setExistingShapes((existingShapes) => this.existingShapes);
+          if(!this.isCollaborationActive){
+            localStorage.setItem(SHAPES_DATA_KEY, JSON.stringify(this.existingShapes));
+          }
         default:
           return;
       }
+      const message = JSON.stringify({shape, strokeConfiguration});
 
-      this.socket.send(
-        JSON.stringify({
-          type: CHAT,
-          message: JSON.stringify({
-            shape,
-            strokeConfiguration
-          }),
-          roomId: this.roomId,
-        })
-      );
+      if(this.isCollaborationActive){
+        this.socket.send(
+          JSON.stringify({
+            type: CHAT,
+            message, 
+            roomId: this.roomId,
+          })
+        );
+      }
+      else{
+        const randomNumber: number = Math.random() * 10;
+        this.setExistingShapes(es => [...this.existingShapes, {message, id: randomNumber}])
+
+      }
     } catch (err) {
       console.log(err);
     }

@@ -7,6 +7,7 @@ import { DrawManager } from "@/lib/engine/DrawManager";
 import { CanvasState, ExistingShape } from "@/common/types/types";
 import DrawStyleConfigBar from "./DrawStyleConfigBar/DrawStyleConfigBar";
 import Logout from "./Logout";
+import { SHAPES_DATA_KEY } from "@/lib/constants";
 
 export type StartCoordinates = {
   startX: number;
@@ -19,9 +20,10 @@ type DrawingCanvasProps = {
   existingShapes: ExistingShape[],
   setExistingShapes: React.Dispatch<SetStateAction<ExistingShape[]>>;
   roomId:string;
+  isCollaborationActive: boolean
 }
 
-const DrawingCanvas = ({socket, existingShapes, setExistingShapes, roomId} : DrawingCanvasProps) => {
+const DrawingCanvas = ({socket, existingShapes, setExistingShapes, roomId, isCollaborationActive} : DrawingCanvasProps) => {
  const canvasRef = useRef<HTMLCanvasElement>(null);
  const [windowInnerHeight, setWindowInnerHeight] = useState<number | null>(null);
  const [windowInnerWidth , setWindowInnerWidth]  = useState<number | null>(null); 
@@ -47,17 +49,31 @@ const DrawingCanvas = ({socket, existingShapes, setExistingShapes, roomId} : Dra
 
   }, [])
   
+
+  useEffect(() => {
+   if(!isCollaborationActive){
+    const shapesData = localStorage.getItem(SHAPES_DATA_KEY);
+    if(shapesData)
+      setExistingShapes(es => JSON.parse(shapesData));
+    else
+      {
+        localStorage.setItem(SHAPES_DATA_KEY, JSON.stringify([]));
+        setExistingShapes([]);
+      }
+   } 
+  }, [isCollaborationActive])
+
   useEffect(() => {
     if (!canvasRef.current || !socket) return;
     
     const canvasManagerObj = new DrawManager(canvasRef.current, socket, roomId, existingShapes, setExistingShapes, canvasState
-    ,setCanvasState, document.documentElement.clientWidth);
+    ,setCanvasState, document.documentElement.clientWidth, isCollaborationActive);
     setCanvasManager(canvasManagerObj);
 
     return (() =>{
       canvasManagerObj.destroy();
     })
-  }, [canvasRef.current, socket, roomId, existingShapes, canvasState, setCanvasState]);
+  }, [canvasRef.current, socket, roomId, existingShapes, canvasState, setCanvasState, isCollaborationActive]);
 
 
   

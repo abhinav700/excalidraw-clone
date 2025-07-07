@@ -14,7 +14,7 @@ const ChatRoomClient = ({messages, roomId}: ChatRoomClientProps) => {
   const [existingShapes, setExistingShapes] = useState<ExistingShape[]>(messages);
 
   return (
-   <DrawingCanvas existingShapes={existingShapes} setExistingShapes={setExistingShapes} socket={socket!} roomId={roomId}/>
+   <DrawingCanvas existingShapes={existingShapes} setExistingShapes={setExistingShapes} socket={socket!} roomId={roomId} isCollaborationActive={true}/>
   )
 }
 
