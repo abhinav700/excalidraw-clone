@@ -1,18 +1,25 @@
 import { ExistingShape } from "@/common/types/types";
 import findShapeContainingPoint from "./findShapeContainingPoint";
 import { ERASE_SHAPE } from "@repo/common/constants";
+import { SetStateAction } from "react";
 
-const triggerEraseEvent = (x: number, y: number, existingShapes : ExistingShape[], socket:WebSocket | undefined, roomId: string) => {
+const triggerEraseEvent = (x: number, y: number, existingShapes : ExistingShape[], setExistingShapes: React.Dispatch<SetStateAction<ExistingShape[]>>, isCollaborationActive: boolean, socket:WebSocket | undefined, roomId: string) => {
   const shapeIndex: number = findShapeContainingPoint(x, y, existingShapes);
-  if(shapeIndex != -1){
-    const id : number = existingShapes[shapeIndex].id
-    if(socket){
+  const id : number | null = shapeIndex >= 0 ? existingShapes[shapeIndex].id : -1;
+  console.log("Entered trigger Erase Event: ", id);
 
-      socket.send(JSON.stringify({
+  
+  if(shapeIndex != -1){
+    if(isCollaborationActive){
+      socket!.send(JSON.stringify({
         type: ERASE_SHAPE,
         id,
         roomId
-      }))
+      }));
+    }
+    else{
+      let filteredArray : ExistingShape[] = existingShapes.filter(v => v.id != id);
+      setExistingShapes(existingShapes => filteredArray);
     }
   }
   return;

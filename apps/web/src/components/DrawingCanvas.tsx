@@ -73,6 +73,12 @@ const DrawingCanvas = ({socket, existingShapes, setExistingShapes, roomId, isCol
    } 
   }, [isCollaborationActive])
 
+  useEffect(() =>{
+    if(!isCollaborationActive){
+      localStorage.setItem(SHAPES_DATA_KEY, JSON.stringify(existingShapes))
+    }
+  }, [existingShapes, isCollaborationActive])
+
   useEffect(() => {
     if (!canvasRef.current || (isCollaborationActive && !socket)) return;
     
@@ -85,24 +91,39 @@ const DrawingCanvas = ({socket, existingShapes, setExistingShapes, roomId, isCol
     })
   }, [canvasRef.current, socket, roomId, existingShapes, canvasState, setCanvasState, isCollaborationActive]);
 
-
   
    return <>
    {isCollaborationActive && <Logout/>}
-   <div
-      className="m-0 p-0 overflow-hidden text-black"
+   {
+    
+    !isCollaborationActive ? <div
+     className="m-0 relative p-0 overflow-hidden text-black "
       style={{width: isCollaborationActive ? '100vw' : '100%', height:'100%'  }}
       id="canvas-container"
       ref={canvasContainerRef}
       >
-    {/* <DrawStyleConfigBar canvasState={canvasState} canvasManager={canvasManager!}/> */}
-   {canvasManager && <DrawingToolbar canvasManager={canvasManager!} canvasState={canvasState}/>}
+        {canvasManager && <DrawStyleConfigBar canvasState={canvasState} canvasManager={canvasManager!} isCollaborationActive={isCollaborationActive}/>}
+        {canvasManager && <DrawingToolbar canvasManager={canvasManager!} canvasState={canvasState}/>}
       <canvas ref={canvasRef} 
         width={windowInnerWidth!}
         height={windowInnerHeight!}
         className="bg-white m-0"/>
         
     </div>
+
+
+    :      
+    <>
+            {canvasManager && <DrawStyleConfigBar canvasState={canvasState} canvasManager={canvasManager!} isCollaborationActive={isCollaborationActive}/>}
+        {canvasManager && <DrawingToolbar canvasManager={canvasManager!} canvasState={canvasState}/>}
+
+    <canvas ref={canvasRef} 
+        width={windowInnerWidth!}
+        height={windowInnerHeight!}
+        className="bg-white m-0"/>
+
+        </>
+    }
     </>
 }
 

@@ -111,8 +111,6 @@ export class DrawManager {
       this.initSocketHandlers();
     }
     
-    console.log("hello draw manager");
-
     this.canvas.addEventListener("mousedown", this.mouseDownHandler);
     this.canvas.addEventListener("mousemove", this.mouseMoveHandler);
     this.canvas.addEventListener("mouseup", this.mouseUpHandler);
@@ -385,18 +383,15 @@ export class DrawManager {
 
     if (this.selectedTool == "selection") return;
     
+    this.isDrawing = true;
+    
     const rect = this.canvas.getBoundingClientRect();
     this.canvasOffsetX = rect.left;
     this.canvasOffsetY = rect.top;  
-    this.isDrawing = true;
-    console.log("entering mouse down event");
-    console.log(this.startX, this.startY);
-    console.log(this.canvasOffsetX, this.canvasOffsetY)
+    
     this.startX = (e.clientX - this.totalPanOffset.x - this.canvasOffsetX)/this.scale;
     this.startY = (e.clientY - this.totalPanOffset.y - this.canvasOffsetY)/this.scale;
-    ; 
-
-    console.log(this.startX, this.startY)
+    
     if(this.selectedTool == 'hand'){
       this.panStart = {x: e.clientX , y: e.clientY};
       this.isPanning = true;
@@ -409,6 +404,8 @@ export class DrawManager {
         this.startX,
         this.startY,
         this.existingShapes,
+        this.setExistingShapes,
+        this.isCollaborationActive,
         this.socket,
         this.roomId!
       );
@@ -604,7 +601,7 @@ private handleText(e: MouseEvent) {
         this.selectedTool == "text"
       )
         return;
-
+      // console.log("Entered mouse move handler")
       const endX = (e.clientX - this.totalPanOffset.x - this.canvasOffsetX)/this.scale; 
       const endY = (e.clientY - this.totalPanOffset.y - this.canvasOffsetY)/this.scale;
      
@@ -612,6 +609,7 @@ private handleText(e: MouseEvent) {
 
       this.drawExistingShapes();
       
+      // console.log("reached after drawExistingShapes")
       this.ctx.strokeStyle = this.strokeStyle;
       this.ctx.fillStyle = this.fillStyle;
       this.ctx.lineWidth = parseInt(this.strokeWidth);
@@ -670,6 +668,8 @@ private handleText(e: MouseEvent) {
             e.clientX - this.totalPanOffset.x,
             e.clientY - this.totalPanOffset.y,
             this.existingShapes,
+            this.setExistingShapes,
+            this.isCollaborationActive,
             this.socket,
             this.roomId
           );
@@ -778,9 +778,7 @@ private handleText(e: MouseEvent) {
           return;
         case "eraser":
           this.setExistingShapes((existingShapes) => this.existingShapes);
-          if(!this.isCollaborationActive){
-            localStorage.setItem(SHAPES_DATA_KEY, JSON.stringify(this.existingShapes));
-          }
+          return;
         default:
           return;
       }
@@ -798,7 +796,6 @@ private handleText(e: MouseEvent) {
       else{
         const randomNumber: number = Math.random() * 10;
         this.setExistingShapes(es => [...this.existingShapes, {message, id: randomNumber}])
-
       }
     } catch (err) {
       console.log(err);
