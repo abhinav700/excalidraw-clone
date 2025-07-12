@@ -4,12 +4,13 @@ import { SetStateAction } from "react";
 
 
 const sendTextToBackend  = (startX: number, startY: number, content: string, width: number,
-  height: number, socket: WebSocket, roomId: string, fontConfiguration: FontConfiguration, isCollaborationActive: boolean,
+  height: number, socket: WebSocket | undefined, roomId: string, fontConfiguration: FontConfiguration, isCollaborationActive: boolean,
   setExistingShapes: React.Dispatch<SetStateAction<ExistingShape[]>>, existingShapes: ExistingShape[]) => {
   
   try{
    if(content.trim() == '') 
     return;
+
 
    const message = JSON.stringify({
     shape: {
@@ -26,7 +27,7 @@ const sendTextToBackend  = (startX: number, startY: number, content: string, wid
 
    if(isCollaborationActive){
 
-     socket.send(
+     socket!.send(
        JSON.stringify({
          type: CHAT,
           message,

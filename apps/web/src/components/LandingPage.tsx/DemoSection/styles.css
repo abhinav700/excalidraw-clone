@@ -1,0 +1,16 @@
+.demo-section{
+  height: 140vh;
+  width: 100vw;
+  padding: 20px 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background: radial-gradient(#9dc6ec, #f3e5e5) ;
+ }
+
+ .demo-heading{
+  font-size: 45px;
+  /* margin-top: 30px; */
+  font-family: "Bubblegum_Sans";
+ }
+ 

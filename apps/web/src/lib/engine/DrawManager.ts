@@ -29,7 +29,7 @@ export class DrawManager {
   private textAllignment: TextAlignment;
   private fontWeight: FontWeight;
 
-  private socket: WebSocket;
+  private socket: WebSocket | undefined;
   private roomId: string;
   private selectedTool: Tool;
   private isCollaborationActive: boolean;
@@ -45,6 +45,8 @@ export class DrawManager {
   private isDrawing: boolean;
   private isCtrlMetaActive: boolean;
   private isPanning: boolean;
+  private canvasOffsetX : number;
+  private canvasOffsetY: number
   
   private lines: LineSegment[];
   private activeTextArea: HTMLTextAreaElement | null;
@@ -52,7 +54,7 @@ export class DrawManager {
 
   constructor(
     canvas: HTMLCanvasElement,
-    socket: WebSocket,
+    socket: WebSocket | undefined,
     roomId: string,
     existingShapes: ExistingShape[],
     setExistingShapes: React.Dispatch<SetStateAction<ExistingShape[]>>,
@@ -92,7 +94,10 @@ export class DrawManager {
     this.canvasCenter = {x: this.canvas.width/2, y: this.canvas.height / 2};
     this.totalPanOffset = canvasState.totalPanOffset;
     this.windowInnerWidth = windowInnerWidth;
-    
+
+
+    this.canvasOffsetX = 0;
+    this.canvasOffsetY = 0;
     this.isDrawing = false;
     this.isPanning = false;
     this.isCtrlMetaActive = false;
@@ -105,6 +110,8 @@ export class DrawManager {
     if(this.isCollaborationActive){
       this.initSocketHandlers();
     }
+    
+    console.log("hello draw manager");
 
     this.canvas.addEventListener("mousedown", this.mouseDownHandler);
     this.canvas.addEventListener("mousemove", this.mouseMoveHandler);
@@ -229,6 +236,8 @@ export class DrawManager {
   }
 
   public initSocketHandlers() {
+    if(!this.socket)
+      return;
     this.socket.onmessage = async (event) => {
       try {
         const parsedData = await JSON.parse(event.data);
@@ -260,7 +269,7 @@ export class DrawManager {
    public drawExistingShapes() {
     
     this.ctx.setTransform(this.scale, 0, 0, this.scale, this.totalPanOffset.x, this.totalPanOffset.y);
-    console.log(this.existingShapes);
+    // console.log(this.existingShapes);
    
     this.ctx.clearRect(-this.totalPanOffset.x/this.scale, -this.totalPanOffset.y/this.scale, this.canvas.width / this.scale, this.canvas.height/ this.scale);
     
@@ -375,10 +384,19 @@ export class DrawManager {
   private mouseDownHandler = async (e: MouseEvent) => {
 
     if (this.selectedTool == "selection") return;
+    
+    const rect = this.canvas.getBoundingClientRect();
+    this.canvasOffsetX = rect.left;
+    this.canvasOffsetY = rect.top;  
     this.isDrawing = true;
-    this.startX = (e.clientX - this.totalPanOffset.x)/this.scale;
-    this.startY = (e.clientY - this.totalPanOffset.y)/this.scale;
+    console.log("entering mouse down event");
+    console.log(this.startX, this.startY);
+    console.log(this.canvasOffsetX, this.canvasOffsetY)
+    this.startX = (e.clientX - this.totalPanOffset.x - this.canvasOffsetX)/this.scale;
+    this.startY = (e.clientY - this.totalPanOffset.y - this.canvasOffsetY)/this.scale;
+    ; 
 
+    console.log(this.startX, this.startY)
     if(this.selectedTool == 'hand'){
       this.panStart = {x: e.clientX , y: e.clientY};
       this.isPanning = true;
@@ -587,8 +605,8 @@ private handleText(e: MouseEvent) {
       )
         return;
 
-      const endX = (e.clientX - this.totalPanOffset.x)/this.scale; 
-      const endY = (e.clientY - this.totalPanOffset.y)/this.scale;
+      const endX = (e.clientX - this.totalPanOffset.x - this.canvasOffsetX)/this.scale; 
+      const endY = (e.clientY - this.totalPanOffset.y - this.canvasOffsetY)/this.scale;
      
       this.ctx.clearRect(-this.totalPanOffset.x/ this.scale, -this.totalPanOffset.y/this.scale, this.canvas.width/ this.scale, this.canvas.height/this.scale);
 
@@ -689,8 +707,8 @@ private handleText(e: MouseEvent) {
 
       this.isDrawing = false;
       
-      const endX = (e.clientX - this.totalPanOffset.x)/this.scale,
-      endY = (e.clientY - this.totalPanOffset.y)/this.scale;
+      const endX = (e.clientX - this.totalPanOffset.x - this.canvasOffsetX)/this.scale,
+      endY = (e.clientY - this.totalPanOffset.y - this.canvasOffsetY)/this.scale;
 
       const width: number = endX - this.startX;
       const height: number = endY - this.startY;
@@ -769,7 +787,7 @@ private handleText(e: MouseEvent) {
       const message = JSON.stringify({shape, strokeConfiguration});
 
       if(this.isCollaborationActive){
-        this.socket.send(
+        this.socket!.send(
           JSON.stringify({
             type: CHAT,
             message, 

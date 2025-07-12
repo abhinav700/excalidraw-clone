@@ -21,7 +21,7 @@ const DrawStyleConfigBar = ({canvasManager, canvasState} : DrawStyleConfigBarPro
   const shouldShowStrokeSyleConfigBar =  canvasState.selectedTool != 'eraser';
   return (
         shouldShowDrawStyleConfigBar && 
-        <div className='absolute py-3 px-2 rounded-md bg-gray-300 h-[100vh] overflow-auto w-[300px]'>
+        <div className=' py-3 px-2 rounded-md bg-gray-300 h-[100vh] overflow-auto w-[300px]'>
           {shouldShowStrokeSyleConfigBar && <StrokeColor canvasState={canvasState} canvasManager={canvasManager}/>}
           {shouldShowFillStyleConfigBar && <FillStyle canvasState={canvasState} canvasManager={canvasManager}/>}
           {canvasState.selectedTool != 'text'  && <StrokeWidth canvasState={canvasState} canvasManager={canvasManager}/>}

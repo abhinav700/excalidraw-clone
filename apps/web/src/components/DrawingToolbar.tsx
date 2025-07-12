@@ -10,8 +10,8 @@ type DrawingToolbarProps = {
 
 const DrawingToolbar = ({canvasManager, canvasState}: DrawingToolbarProps) => {
   const [currentTool, setCurrentTool]= useState<Tool>(canvasState.selectedTool);
- 
-    return <div className="flex  absolute top-[5%] rounded-lg left-[40%] py-0 bg-slate-800  text-white items-center justify-center">
+  console.log('hello toobar')
+    return <div className="flex w-[40%] relative left-[30%] top-[15%] p-1 rounded-md bg-slate-800  text-white items-center justify-center">
     <ToolButton setCurrentTool={setCurrentTool} canvasManager={canvasManager}  toolName="selection" currentTool={currentTool}>
       <MousePointer/>
     </ToolButton>
@@ -54,7 +54,7 @@ interface ToolButtonProps {
 const ToolButton = ({ toolName, children, currentTool, setCurrentTool,canvasManager }: ToolButtonProps) => {
   return (
     <div
-      className={`w-full flex items-center justify-center cursor-pointer my-1 rounded-xl ${currentTool == toolName && "bg-slate-400"} hover:bg-slate-400 p-2`}
+      className={`w-full w-[25px] flex items-center justify-center cursor-pointer my-1 rounded-xl ${currentTool == toolName && "bg-slate-400"} hover:bg-slate-400 p-2`}
       onClick={(e) => {canvasManager.setSelectedTool(toolName); setCurrentTool(toolName)}}
     >
       {children}
