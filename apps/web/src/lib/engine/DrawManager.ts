@@ -400,7 +400,7 @@ export class DrawManager {
     if (this.selectedTool == "pencil") {
       this.lines = [];
     } else if (this.selectedTool == "eraser") {
-      triggerEraseEvent(
+      let filteredArray = triggerEraseEvent(
         this.startX,
         this.startY,
         this.existingShapes,
@@ -409,6 +409,11 @@ export class DrawManager {
         this.socket,
         this.roomId!
       );
+      if(!this.isCollaborationActive){
+        this.existingShapes = filteredArray ? filteredArray : this.existingShapes;
+        this.drawExistingShapes();
+      }
+
     } else if (this.selectedTool == "text") {
       this.isDrawing = false;
       this.handleText(e);
@@ -664,7 +669,7 @@ private handleText(e: MouseEvent) {
           break;
 
         case "eraser":
-          triggerEraseEvent(
+          let filteredArray =triggerEraseEvent(
             e.clientX - this.totalPanOffset.x,
             e.clientY - this.totalPanOffset.y,
             this.existingShapes,
@@ -673,6 +678,10 @@ private handleText(e: MouseEvent) {
             this.socket,
             this.roomId
           );
+          if(!this.isCollaborationActive){
+            this.existingShapes = filteredArray ? filteredArray : this.existingShapes;
+            this.drawExistingShapes;
+          }
           break;
 
         case "line":

@@ -26,6 +26,7 @@ type DrawingCanvasProps = {
 const DrawingCanvas = ({socket, existingShapes, setExistingShapes, roomId, isCollaborationActive} : DrawingCanvasProps) => {
  const canvasRef = useRef<HTMLCanvasElement>(null);
  const canvasContainerRef = useRef<HTMLDivElement>(null);
+ const [isFirstRender, setFirstRender] = useState<boolean>(true);
 
  const [windowInnerHeight, setWindowInnerHeight] = useState<number | null>(null);
  const [windowInnerWidth , setWindowInnerWidth]  = useState<number | null>(null); 
@@ -50,7 +51,6 @@ const DrawingCanvas = ({socket, existingShapes, setExistingShapes, roomId, isCol
     if(!isCollaborationActive || !canvasContainerRef.current){
         setWindowInnerHeight(window.innerHeight);
         setWindowInnerWidth(window.innerWidth);
-        
     }
 
     else{
@@ -90,6 +90,9 @@ const DrawingCanvas = ({socket, existingShapes, setExistingShapes, roomId, isCol
       canvasManagerObj.destroy();
     })
   }, [canvasRef.current, socket, roomId, existingShapes, canvasState, setCanvasState, isCollaborationActive]);
+
+  // const token = parseCookie(SHAPES_DATA_KEY);
+  // console.log(token);
 
   
    return <>

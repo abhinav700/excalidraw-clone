@@ -108,3 +108,8 @@ export type SignInUser = {
   email: string,
   password: string,
 }
+
+export type FeatureData = {
+  heading: string;
+  description: string;
+}

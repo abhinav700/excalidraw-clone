@@ -19,10 +19,10 @@ const triggerEraseEvent = (x: number, y: number, existingShapes : ExistingShape[
     }
     else{
       let filteredArray : ExistingShape[] = existingShapes.filter(v => v.id != id);
-      setExistingShapes(existingShapes => filteredArray);
+      return filteredArray;
     }
   }
-  return;
+  return null;
 }
 
 export default triggerEraseEvent;
